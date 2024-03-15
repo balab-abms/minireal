@@ -1,4 +1,4 @@
-package org.balab;
+package org.balab.minireal;
 
 import com.vaadin.flow.component.page.AppShellConfigurator;
 import com.vaadin.flow.theme.Theme;

@@ -1,5 +1,12 @@
 package org.balab.minireal.views.pages;
 
-public class AddUserView
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.Route;
+import jakarta.annotation.security.RolesAllowed;
+import org.balab.minireal.views.MainLayout;
+
+@Route(value = "adduser", layout = MainLayout.class)
+@RolesAllowed("ADMIN")
+public class AddUserView extends VerticalLayout
 {
 }

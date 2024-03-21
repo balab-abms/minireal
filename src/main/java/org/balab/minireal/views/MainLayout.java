@@ -17,8 +17,10 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.menubar.MenuBarVariant;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.theme.lumo.LumoUtility;
 import org.balab.minireal.data.entity.Role;
 import org.balab.minireal.data.entity.User;
 import org.balab.minireal.data.service.FileSystemService;
@@ -33,7 +35,7 @@ public class MainLayout extends AppLayout {
 
 
     // define layouts and components
-    Div child_content;
+    FlexLayout child_content;
     VerticalLayout footer;
     public MainLayout(
             FileSystemService fileSystem_service,
@@ -43,16 +45,20 @@ public class MainLayout extends AppLayout {
         this.authenticatedUser = authenticatedUser;
 
         // setup layouts
-        child_content = new Div();
-        child_content.setSizeFull();
+        child_content = new FlexLayout();
+//        child_content.setSizeFull();
+        child_content.setWidthFull();
+        child_content.setHeight("min-content");
         footer = new VerticalLayout();
+        footer.setAlignItems(FlexComponent.Alignment.CENTER);
         footer.setWidthFull();
-        footer.setHeight("85px");
+        footer.setHeight("80px");
         footer.getStyle().set("padding", "12px 40px 4px 40px");
 
         VerticalLayout body = new VerticalLayout(child_content, footer);
         body.setFlexGrow(1, child_content);
         body.setSizeFull();
+        body.addClassName(LumoUtility.Gap.SMALL);
         setContent(body);
 
         setDrawerOpened(false);
@@ -68,7 +74,7 @@ public class MainLayout extends AppLayout {
         header_layout.setAlignItems(FlexComponent.Alignment.CENTER);
 
         Image miniReal_logo = new Image(fileSystem_service.getImageResource("images/Logo.png"), "MiniReal Logo");
-        miniReal_logo.setHeight("55px");
+        miniReal_logo.setHeight("45px");
         header_layout.add(miniReal_logo);
         miniReal_logo.addClickListener(event -> {
             UI.getCurrent().navigate("/");
@@ -90,7 +96,7 @@ public class MainLayout extends AppLayout {
             MenuBar nav_menu = new MenuBar();
             nav_menu.addThemeVariants(MenuBarVariant.LUMO_ICON, MenuBarVariant.LUMO_TERTIARY);
 
-            MenuItem starter_item = nav_menu.addItem(new H3("Starter"));
+            MenuItem starter_item = nav_menu.addItem(new H4("Starter"));
             starter_item.getStyle().set("width", "160px");
             starter_item.getStyle().set("color", "black");
             starter_item.add(VaadinIcon.ANGLE_DOWN.create());
@@ -102,7 +108,7 @@ public class MainLayout extends AppLayout {
                 UI.getCurrent().navigate(CreateModelView.class);
             });
 
-            MenuItem run_item = nav_menu.addItem(new H3("Run"), event -> {
+            MenuItem run_item = nav_menu.addItem(new H4("Run"), event -> {
                 UI.getCurrent().navigate(RunView.class);
             });
             run_item.getStyle().set("width", "160px");
@@ -150,7 +156,7 @@ public class MainLayout extends AppLayout {
 
         Hr horizontal_line = new Hr();
         horizontal_line.getStyle().set("background", "var(--lumo-contrast-10pct)");
-        horizontal_line.getStyle().set("margin", "0px 80px 12px 80px");
+        horizontal_line.getStyle().set("margin", "12px 80px 0px 80px");
 
         VerticalLayout nav_layout = new VerticalLayout(header_layout, horizontal_line);
         nav_layout.setSizeFull();
@@ -167,6 +173,8 @@ public class MainLayout extends AppLayout {
         horizontal_line.getStyle().set("margin", "0px 40px 0px 40px");
 
         Span copyright_footer = new Span("Copyright © 2024 BaLab");
+        copyright_footer.getElement().getStyle().set("display", "flex");
+        copyright_footer.getElement().getStyle().set("align-items", "center");
         Button about_footer = new Button("About", event -> {
             UI.getCurrent().navigate(AboutView.class);
         });

@@ -1,13 +1,16 @@
 package org.balab.minireal.views.pages;
 
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.H2;
+import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
+import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.NumberField;
@@ -15,6 +18,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.binder.PropertyId;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.PermitAll;
 import org.balab.minireal.data.entity.SimForm;
 import org.balab.minireal.data.service.StorageProperties;
@@ -38,6 +42,7 @@ public class CreateModelView extends VerticalLayout
     private final AuthenticatedUser authenticated_user;
 
     // define elements
+    FlexLayout child_main_layout;
     @PropertyId("name")
     TextField model_name;
     TextField field_name;
@@ -59,7 +64,14 @@ public class CreateModelView extends VerticalLayout
         this.authenticated_user = authenticated_user;
 
         // setup layout
-        setJustifyContentMode(JustifyContentMode.CENTER);
+//        setJustifyContentMode(JustifyContentMode.START);
+//        setAlignItems(Alignment.CENTER);
+        setSizeFull();
+        child_main_layout = new FlexLayout();
+        child_main_layout.setFlexDirection(FlexLayout.FlexDirection.COLUMN);
+        child_main_layout.addClassName(LumoUtility.Gap.LARGE);
+        add(child_main_layout);
+
 
         // save the instance of the UI
         addAttachListener(event -> this.form_ui = event.getUI());
@@ -70,7 +82,9 @@ public class CreateModelView extends VerticalLayout
         form_binder = new Binder<>(SimForm.class);
 
         // create header
-        H2 title = new H2("Create Model");
+        VerticalLayout title_layout = new VerticalLayout(new H3("Create Model"));
+        title_layout.setJustifyContentMode(JustifyContentMode.START);
+        title_layout.getStyle().set("padding", "12px");
         // create fields
         model_name = new TextField("Model Name");
         agent_name = new TextField("Agent Name");
@@ -98,7 +112,7 @@ public class CreateModelView extends VerticalLayout
                 // Use one column by default
                 new FormLayout.ResponsiveStep("0", 1)
         );
-        sim_form.setWidth("25%");
+        sim_form.getStyle().set("padding", "12px");
 
         // bind model binder to related form elements
         form_binder.forField(model_name).bind(SimForm::getModel_name, SimForm::setModel_name);
@@ -131,11 +145,11 @@ public class CreateModelView extends VerticalLayout
         HorizontalLayout button_layout = new HorizontalLayout(cancel_btn, generate_sim_btn);
         button_layout.getStyle().set("flex-wrap", "wrap");
         button_layout.setJustifyContentMode(JustifyContentMode.END);
-        button_layout.setWidth("25%");
+        button_layout.getStyle().set("padding", "12px");
         button_layout.setDefaultVerticalComponentAlignment(Alignment.CENTER);
 
         // add items to vertical Layout and set alignment
-        add(title, sim_form, button_layout);
+        child_main_layout.add(title_layout, sim_form, button_layout);
         setAlignSelf(Alignment.CENTER, sim_form);
         setDefaultHorizontalComponentAlignment(Alignment.CENTER);
     }

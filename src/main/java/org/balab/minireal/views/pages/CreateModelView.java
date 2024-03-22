@@ -5,30 +5,42 @@ import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.NativeLabel;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.progressbar.ProgressBar;
+import com.vaadin.flow.component.progressbar.ProgressBarVariant;
 import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.binder.PropertyId;
+import com.vaadin.flow.data.binder.ValidationException;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.StreamResource;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.PermitAll;
 import org.balab.minireal.data.entity.SimForm;
+import org.balab.minireal.data.service.OsService;
 import org.balab.minireal.data.service.StorageProperties;
 import org.balab.minireal.security.AuthenticatedUser;
 import org.balab.minireal.views.MainLayout;
+import org.balab.minireal.views.helpers.UIRelatedHelpers;
+import org.vaadin.olli.FileDownloadWrapper;
 import sim.field.continuous.Continuous2D;
 import sim.field.grid.Grid2D;
 import sim.util.Bag;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -40,6 +52,8 @@ public class CreateModelView extends VerticalLayout
     // define services
     private StorageProperties storage_properties;
     private final AuthenticatedUser authenticated_user;
+    private final UIRelatedHelpers ui_helpers;
+    private final OsService os_service;
 
     // define elements
     FlexLayout child_main_layout;
@@ -51,21 +65,29 @@ public class CreateModelView extends VerticalLayout
     TextField agent_name;
     NumberField agent_popln;
     Binder<SimForm> form_binder;
+    ConfirmDialog zip_dialog;
+    ProgressBar download_progress;
+    NativeLabel progressBarLabelText;
+    Button zip_dialog_cancel_btn, zip_dialog_download_btn;
 
     // define members
     private UI form_ui;
+    private Thread download_thread;
+    private Long user_id;
     private String user_saved_dir;
     public CreateModelView(
             StorageProperties storage_properties,
-            AuthenticatedUser authenticated_user
+            AuthenticatedUser authenticated_user,
+            UIRelatedHelpers ui_helpers,
+            OsService os_service
     ) {
         // initialize services
         this.storage_properties =storage_properties;
         this.authenticated_user = authenticated_user;
+        this.ui_helpers = ui_helpers;
+        this.os_service = os_service;
 
         // setup layout
-//        setJustifyContentMode(JustifyContentMode.START);
-//        setAlignItems(Alignment.CENTER);
         setSizeFull();
         child_main_layout = new FlexLayout();
         child_main_layout.setFlexDirection(FlexLayout.FlexDirection.COLUMN);
@@ -75,7 +97,7 @@ public class CreateModelView extends VerticalLayout
 
         // save the instance of the UI
         addAttachListener(event -> this.form_ui = event.getUI());
-        // think about merging the ui and filesystem services
+        user_id = authenticated_user.get().get().getId();
         user_saved_dir = storage_properties.getPath() + File.separator + authenticated_user.get().get().getId();
 
         // setup binder
@@ -131,10 +153,10 @@ public class CreateModelView extends VerticalLayout
             if(isFilledFormElements())
             {
                 // setup dialog
-//                setupDialog();
-//                zip_dialog.open();
-//                download_thread = new Thread(this::downloadSim);
-//                download_thread.start();
+                setupDialog();
+                zip_dialog.open();
+                download_thread = new Thread(this::downloadSim);
+                download_thread.start();
             } else {
                 Notification.show("Please fill all form fields.").addThemeVariants(NotificationVariant.LUMO_ERROR);
             }
@@ -161,5 +183,90 @@ public class CreateModelView extends VerticalLayout
             return false;
         }
         return true;
+    }
+
+    // helper method to set-up the dialog for model download
+    private void setupDialog()
+    {
+        zip_dialog = new ConfirmDialog();
+        zip_dialog.setHeader("Create Model");
+        zip_dialog.setCloseOnEsc(false);
+        zip_dialog.setWidth("400px");
+
+        download_progress = new ProgressBar();
+        download_progress.setHeight("25px");
+        download_progress.setIndeterminate(true);
+        download_progress.addThemeVariants(ProgressBarVariant.LUMO_SUCCESS);
+
+        progressBarLabelText = new NativeLabel("Generating model ... please wait a moment");
+        progressBarLabelText.setId("pblabel");
+        // Associates the label with the progressbar for screen readers:
+        download_progress.getElement().setAttribute("aria-labelledby", "pblabel");
+
+        VerticalLayout dialog_layout = new VerticalLayout(progressBarLabelText, download_progress);
+        dialog_layout.setSizeFull();
+        zip_dialog.add(dialog_layout);
+
+        zip_dialog_cancel_btn = new Button("Cancel");
+        zip_dialog_cancel_btn.addThemeVariants(ButtonVariant.LUMO_ERROR);
+        zip_dialog_cancel_btn.setEnabled(false);
+
+        zip_dialog_download_btn = new Button("Download");
+        zip_dialog_download_btn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        zip_dialog_download_btn.setEnabled(false);
+
+        zip_dialog.add(dialog_layout);
+        zip_dialog.setCancelable(true);
+        zip_dialog.setCancelButton(zip_dialog_cancel_btn);
+        zip_dialog.setRejectable(false);
+        zip_dialog.setConfirmButton(zip_dialog_download_btn);
+    }
+
+    private void downloadSim()
+    {
+        SimForm sim_form_data = new SimForm();
+        try {
+            form_binder.writeBean(sim_form_data);
+            // create directory for generating models
+            String generate_dir = user_saved_dir + File.separator + "generated_models" + File.separator + sim_form_data.getModel_name();
+            // create a directory for model
+            File model_file = new File(generate_dir);
+            File zip_file = ui_helpers.generateModelJar(sim_form_data, model_file);
+            // access UI to update dialog elements
+            form_ui.access(() -> {
+                // show generation successful and download buttons
+                download_progress.setIndeterminate(false);
+                download_progress.setValue(1);
+                progressBarLabelText.setText("Model successfully generated.");
+
+                // setup download & cancel buttons
+                zip_dialog_download_btn.setEnabled(true);
+                zip_dialog_cancel_btn.setEnabled(true);
+                FileDownloadWrapper sim_download_wrapper = new FileDownloadWrapper(zip_file.getName(), zip_file);
+                System.out.println(zip_file.getPath());
+                sim_download_wrapper.wrapComponent(zip_dialog_download_btn);
+                zip_dialog_cancel_btn.addClickListener(event -> {
+                    zip_dialog.close();
+                    os_service.commandRunner(null, "rm -r " + model_file.getPath(), 0);
+                    os_service.commandRunner(null, "rm " + model_file.getPath() + ".zip", 0);
+                });
+                zip_dialog.setConfirmButton(sim_download_wrapper);
+            });
+
+        } catch (ValidationException e)
+        {
+            form_ui.access( () -> {
+                Notification.show("Error reading form.").addThemeVariants(NotificationVariant.LUMO_ERROR);
+                zip_dialog.close();
+            });
+
+            throw new RuntimeException(e);
+        } catch (Exception e){
+            form_ui.access( () -> {
+                Notification.show(e.getMessage()).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                zip_dialog.close();
+            });
+            throw new RuntimeException(e);
+        }
     }
 }

@@ -117,7 +117,7 @@ public class MainLayout extends AppLayout {
             // add admin nav item based on user role
             User currentUser = authenticatedUser.get().get();
             if (currentUser.getRoles().contains(Role.ADMIN)) {
-                MenuItem admin_item = nav_menu.addItem(new H3("Admin"));
+                MenuItem admin_item = nav_menu.addItem(new H4("Admin"));
                 admin_item.getStyle().set("width", "160px");
                 admin_item.getStyle().set("color", "black");
                 admin_item.add(VaadinIcon.ANGLE_DOWN.create());
@@ -135,12 +135,14 @@ public class MainLayout extends AppLayout {
 
             // add user avatar
             MenuBar avatar_menu = new MenuBar();
-            avatar_menu.addThemeVariants(MenuBarVariant.LUMO_ICON, MenuBarVariant.LUMO_TERTIARY);
+            avatar_menu.addThemeVariants(MenuBarVariant.LUMO_LARGE, MenuBarVariant.LUMO_TERTIARY);
             Avatar user_avatar = new Avatar();
             user_avatar.setHeight("40px");
             user_avatar.setWidth("40px");
 
             MenuItem avatar_menu_item = avatar_menu.addItem(user_avatar);
+            avatar_menu_item.getStyle().set("width", "60px");
+            avatar_menu_item.getStyle().set("height", "45px");
             SubMenu avatar_options = avatar_menu_item.getSubMenu();
             avatar_options.addItem("Profile", event -> {
                 UI.getCurrent().navigate(ProfileView.class);

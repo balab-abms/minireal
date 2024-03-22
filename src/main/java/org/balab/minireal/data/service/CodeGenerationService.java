@@ -1,12 +1,11 @@
 package org.balab.minireal.data.service;
 
+import com.squareup.javapoet.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.balab.minireal.data.entity.SimForm;
 import org.simreal.annotation.*;
-import org.springframework.javapoet.*;
 import org.springframework.stereotype.Service;
-import oshi.util.tuples.Pair;
 import sim.engine.SimState;
 import sim.engine.Steppable;
 
@@ -14,6 +13,7 @@ import javax.lang.model.element.Modifier;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import com.squareup.javapoet.JavaFile;
 
 @Service
 public class CodeGenerationService {

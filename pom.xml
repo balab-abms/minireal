@@ -171,6 +171,12 @@
             <version>1.9.0</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.vaadin.addons.chartjs</groupId>
+            <artifactId>chartjs</artifactId>
+            <version>0.1.39</version>
+        </dependency>
+
     </dependencies>
 
     <build>

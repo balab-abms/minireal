@@ -4,11 +4,15 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.charts.model.Dial;
+import com.vaadin.flow.component.charts.model.Label;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.html.NativeLabel;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -37,6 +41,7 @@ import sim.field.continuous.Continuous2D;
 import sim.field.grid.Grid2D;
 import sim.util.Bag;
 
+import java.awt.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -57,6 +62,7 @@ public class CreateModelView extends VerticalLayout
 
     // define elements
     FlexLayout child_main_layout;
+    HorizontalLayout dialog_buttons_layout;
     @PropertyId("name")
     TextField model_name;
     TextField field_name;
@@ -65,7 +71,7 @@ public class CreateModelView extends VerticalLayout
     TextField agent_name;
     NumberField agent_popln;
     Binder<SimForm> form_binder;
-    ConfirmDialog zip_dialog;
+    Dialog zip_dialog;
     ProgressBar download_progress;
     NativeLabel progressBarLabelText;
     Button zip_dialog_cancel_btn, zip_dialog_download_btn;
@@ -188,10 +194,12 @@ public class CreateModelView extends VerticalLayout
     // helper method to set-up the dialog for model download
     private void setupDialog()
     {
-        zip_dialog = new ConfirmDialog();
-        zip_dialog.setHeader("Create Model");
+        zip_dialog = new Dialog();
         zip_dialog.setCloseOnEsc(false);
+        zip_dialog.setCloseOnOutsideClick(false);
         zip_dialog.setWidth("400px");
+
+        H4 dialog_title = new H4("Create Model");
 
         download_progress = new ProgressBar();
         download_progress.setHeight("25px");
@@ -203,23 +211,27 @@ public class CreateModelView extends VerticalLayout
         // Associates the label with the progressbar for screen readers:
         download_progress.getElement().setAttribute("aria-labelledby", "pblabel");
 
-        VerticalLayout dialog_layout = new VerticalLayout(progressBarLabelText, download_progress);
-        dialog_layout.setSizeFull();
-        zip_dialog.add(dialog_layout);
-
-        zip_dialog_cancel_btn = new Button("Cancel");
+        zip_dialog_cancel_btn = new Button("Close");
         zip_dialog_cancel_btn.addThemeVariants(ButtonVariant.LUMO_ERROR);
         zip_dialog_cancel_btn.setEnabled(false);
+        zip_dialog_cancel_btn.getStyle().set("margin-inline-end", "auto");
+        zip_dialog_cancel_btn.addThemeVariants(ButtonVariant.LUMO_ERROR);
 
         zip_dialog_download_btn = new Button("Download");
         zip_dialog_download_btn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         zip_dialog_download_btn.setEnabled(false);
 
+        dialog_buttons_layout = new HorizontalLayout(zip_dialog_cancel_btn, zip_dialog_download_btn);
+        dialog_buttons_layout.setSizeFull();
+        dialog_buttons_layout.getStyle().set("flex-wrap", "wrap");
+        dialog_buttons_layout.setJustifyContentMode(JustifyContentMode.END);
+        dialog_buttons_layout.setDefaultVerticalComponentAlignment(Alignment.CENTER);
+
+        VerticalLayout dialog_layout = new VerticalLayout(dialog_title, progressBarLabelText, download_progress, dialog_buttons_layout);
+        dialog_layout.setSizeFull();
         zip_dialog.add(dialog_layout);
-        zip_dialog.setCancelable(true);
-        zip_dialog.setCancelButton(zip_dialog_cancel_btn);
-        zip_dialog.setRejectable(false);
-        zip_dialog.setConfirmButton(zip_dialog_download_btn);
+
+        zip_dialog.add(dialog_layout);
     }
 
     private void downloadSim()
@@ -234,14 +246,10 @@ public class CreateModelView extends VerticalLayout
             File zip_file = ui_helpers.generateModelJar(sim_form_data, model_file);
             // access UI to update dialog elements
             form_ui.access(() -> {
-                // show generation successful and download buttons
-                download_progress.setIndeterminate(false);
-                download_progress.setValue(1);
-                progressBarLabelText.setText("Model successfully generated.");
-
                 // setup download & cancel buttons
                 zip_dialog_download_btn.setEnabled(true);
                 zip_dialog_cancel_btn.setEnabled(true);
+
                 FileDownloadWrapper sim_download_wrapper = new FileDownloadWrapper(zip_file.getName(), zip_file);
                 System.out.println(zip_file.getPath());
                 sim_download_wrapper.wrapComponent(zip_dialog_download_btn);
@@ -250,7 +258,13 @@ public class CreateModelView extends VerticalLayout
                     os_service.commandRunner(null, "rm -r " + model_file.getPath(), 0);
                     os_service.commandRunner(null, "rm " + model_file.getPath() + ".zip", 0);
                 });
-                zip_dialog.setConfirmButton(sim_download_wrapper);
+
+                // show generation successful and download buttons
+                download_progress.setIndeterminate(false);
+                download_progress.setValue(1);
+                progressBarLabelText.setText("Model successfully generated.");
+                dialog_buttons_layout.removeAll();
+                dialog_buttons_layout.add(zip_dialog_cancel_btn, sim_download_wrapper);
             });
 
         } catch (ValidationException e)

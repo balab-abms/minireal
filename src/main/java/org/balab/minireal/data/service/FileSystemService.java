@@ -4,10 +4,7 @@ import com.vaadin.flow.server.StreamResource;
 import org.apache.commons.io.FileUtils;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -45,8 +42,9 @@ public class FileSystemService
 
     public StreamResource getImageResource(String file_path)
     {
+        System.out.println(file_path);
         return new StreamResource("image.png", () -> {
-            InputStream stream = getClass().getResourceAsStream("/META-INF/resources/" + file_path);
+            InputStream stream = getClass().getResourceAsStream(file_path);
             if (stream == null) {
                 try {
                     throw new FileNotFoundException("File not found");
@@ -57,5 +55,20 @@ public class FileSystemService
             return stream;
         });
     }
+
+    public StreamResource getFileResource(String file_path)
+    {
+        System.out.println(file_path);
+        return new StreamResource("image.png", () -> {
+        InputStream stream = null;
+        try {
+            stream = new FileInputStream(new File(file_path));
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+        return stream;
+    });
+    }
+
 
 }

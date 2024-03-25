@@ -76,7 +76,7 @@ public class CreateModelView extends VerticalLayout
     NativeLabel progressBarLabelText;
     Button zip_dialog_cancel_btn, zip_dialog_download_btn;
 
-    // define members
+
     private UI form_ui;
     private Thread download_thread;
     private Long user_id;

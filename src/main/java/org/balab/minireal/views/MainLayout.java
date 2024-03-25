@@ -73,7 +73,7 @@ public class MainLayout extends AppLayout {
         header_layout.getStyle().set("padding", "4px 40px 0px 40px");
         header_layout.setAlignItems(FlexComponent.Alignment.CENTER);
 
-        Image miniReal_logo = new Image(fileSystem_service.getImageResource("images/Logo.png"), "MiniReal Logo");
+        Image miniReal_logo = new Image(fileSystem_service.getImageResource("/META-INF/resources/images/Logo.png"), "MiniReal Logo");
         miniReal_logo.setHeight("45px");
         header_layout.add(miniReal_logo);
         miniReal_logo.addClickListener(event -> {
@@ -139,6 +139,10 @@ public class MainLayout extends AppLayout {
             Avatar user_avatar = new Avatar();
             user_avatar.setHeight("40px");
             user_avatar.setWidth("40px");
+            String pic_path = authenticatedUser.get().get().getProfilePath();
+            if(pic_path != null){
+                user_avatar.setImageResource(fileSystem_service.getFileResource(pic_path));
+            }
 
             MenuItem avatar_menu_item = avatar_menu.addItem(user_avatar);
             avatar_menu_item.getStyle().set("width", "60px");

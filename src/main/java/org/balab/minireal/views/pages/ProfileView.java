@@ -15,7 +15,6 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.data.binder.Binder;
-import com.vaadin.flow.data.binder.PropertyId;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.PermitAll;
@@ -26,6 +25,7 @@ import org.balab.minireal.data.service.StorageProperties;
 import org.balab.minireal.data.service.UserService;
 import org.balab.minireal.security.AuthenticatedUser;
 import org.balab.minireal.views.MainLayout;
+import org.balab.minireal.views.components.AvatarUpdateToken;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.io.File;
@@ -68,6 +68,10 @@ public class ProfileView extends VerticalLayout
         this.user_service = user_service;
         this.fs_service = fs_service;
         this.storage_properties = storage_properties;
+
+        if(authed_user.get().isEmpty()){
+            authed_user.logout();
+        }
 
         // setup layout
         setSizeFull();
@@ -151,8 +155,8 @@ public class ProfileView extends VerticalLayout
             // get the field values
             String username = username_tf.getValue().trim();
             String name = name_tf.getValue().trim();
-            String passwd = passwd_pf.getValue().trim();
-            String confirm_passwd = confirm_passwd_pf.getValue().trim();
+            String passwd = passwd_pf.getValue();
+            String confirm_passwd = confirm_passwd_pf.getValue();
 
             User current_user = authed_user.get().get();
             // update the user data
@@ -177,11 +181,21 @@ public class ProfileView extends VerticalLayout
                 String pic_path = user_saved_dir + File.separator + "profile_pics" + File.separator + pic_file_name;
                 boolean pic_saved = fs_service.saveFile(pic_path, profile_pic_data);
                 if(pic_saved)
+                {
                     current_user.setProfilePath(pic_path);
+                    UI.getCurrent().getSession().setAttribute(AvatarUpdateToken.class, new AvatarUpdateToken(this.toString()));
+                }
             }
             // update user
+            System.out.println(current_user.getId());
             user_service.update(current_user);
-            Notification.show("User successfully updated.").addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+            Notification.show("User data successfully updated.").addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+            if(authed_user.get().isPresent()){
+                UI.getCurrent().navigate("/");
+            } else {
+                authed_user.logout();
+            }
+
         });
         update_sim_btn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 

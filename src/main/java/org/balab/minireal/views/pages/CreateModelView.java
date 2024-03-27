@@ -31,6 +31,7 @@ import com.vaadin.flow.server.StreamResource;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.PermitAll;
 import org.balab.minireal.data.entity.SimForm;
+import org.balab.minireal.data.entity.User;
 import org.balab.minireal.data.service.OsService;
 import org.balab.minireal.data.service.StorageProperties;
 import org.balab.minireal.security.AuthenticatedUser;
@@ -103,8 +104,13 @@ public class CreateModelView extends VerticalLayout
 
         // save the instance of the UI
         addAttachListener(event -> this.form_ui = event.getUI());
-        user_id = authenticated_user.get().get().getId();
-        user_saved_dir = storage_properties.getPath() + File.separator + authenticated_user.get().get().getId();
+        if(authenticated_user.get().isPresent()){
+            user_id = authenticated_user.get().get().getId();
+            user_saved_dir = storage_properties.getPath() + File.separator + authenticated_user.get().get().getId();
+        } else {
+            authenticated_user.logout();
+        }
+
 
         // setup binder
         form_binder = new Binder<>(SimForm.class);
@@ -215,7 +221,7 @@ public class CreateModelView extends VerticalLayout
         zip_dialog_cancel_btn.addThemeVariants(ButtonVariant.LUMO_ERROR);
         zip_dialog_cancel_btn.setEnabled(false);
         zip_dialog_cancel_btn.getStyle().set("margin-inline-end", "auto");
-        zip_dialog_cancel_btn.addThemeVariants(ButtonVariant.LUMO_ERROR);
+//        zip_dialog_cancel_btn.addThemeVariants(ButtonVariant.LUMO_ERROR);
 
         zip_dialog_download_btn = new Button("Download");
         zip_dialog_download_btn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
@@ -229,7 +235,7 @@ public class CreateModelView extends VerticalLayout
 
         VerticalLayout dialog_layout = new VerticalLayout(dialog_title, progressBarLabelText, download_progress, dialog_buttons_layout);
         dialog_layout.setSizeFull();
-        zip_dialog.add(dialog_layout);
+//        zip_dialog.add(dialog_layout);
 
         zip_dialog.add(dialog_layout);
     }

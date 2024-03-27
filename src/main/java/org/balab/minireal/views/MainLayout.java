@@ -20,15 +20,19 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.BeforeEnterEvent;
+import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import org.balab.minireal.data.entity.Role;
 import org.balab.minireal.data.entity.User;
 import org.balab.minireal.data.service.FileSystemService;
 import org.balab.minireal.security.AuthenticatedUser;
+import org.balab.minireal.views.components.AvatarUpdateToken;
 import org.balab.minireal.views.pages.*;
 
 
-public class MainLayout extends AppLayout {
+public class MainLayout extends AppLayout
+{
     // define services
     private final FileSystemService fileSystem_service;
     private final AuthenticatedUser authenticatedUser;
@@ -139,10 +143,7 @@ public class MainLayout extends AppLayout {
             Avatar user_avatar = new Avatar();
             user_avatar.setHeight("40px");
             user_avatar.setWidth("40px");
-            String pic_path = authenticatedUser.get().get().getProfilePath();
-            if(pic_path != null){
-                user_avatar.setImageResource(fileSystem_service.getFileResource(pic_path));
-            }
+            updateAvatar(user_avatar);
 
             MenuItem avatar_menu_item = avatar_menu.addItem(user_avatar);
             avatar_menu_item.getStyle().set("width", "60px");
@@ -155,6 +156,13 @@ public class MainLayout extends AppLayout {
                 authenticatedUser.logout();
             });
 
+            // subscribe to events for UI update for avatar
+            UI.getCurrent().addAfterNavigationListener(event -> {
+                AvatarUpdateToken avatar_update_event = UI.getCurrent().getSession().getAttribute(AvatarUpdateToken.class);
+                if (avatar_update_event != null) {
+                    updateAvatar(user_avatar);
+                }
+            });
 
             header_layout.add(avatar_menu);
         }
@@ -194,6 +202,14 @@ public class MainLayout extends AppLayout {
         footer.add(horizontal_line, footer_elts_layout);
     }
 
+    public void updateAvatar(Avatar user_avatar)
+    {
+        String pic_path = authenticatedUser.get().get().getProfilePath();
+        if(pic_path != null){
+            user_avatar.setImageResource(fileSystem_service.getFileResource(pic_path));
+        }
+    }
+
     @Override
     public void showRouterLayoutContent(HasElement content)
     {
@@ -203,5 +219,4 @@ public class MainLayout extends AppLayout {
         child_content.removeAll();
         child_content.add((Component) content);
     }
-
 }

@@ -28,7 +28,7 @@ public class AboutView extends VerticalLayout
         setJustifyContentMode(JustifyContentMode.CENTER);
         setSpacing(true);
 
-        Image plant_img = new Image(file_system_service.getImageResource("images/empty-plant 1.png"), "plant image");
+        Image plant_img = new Image(file_system_service.getImageResource("/META-INF/resources/images/empty-plant 1.png"), "plant image");
         plant_img.setWidth("240px");
         plant_img.setHeight("240px");
         plant_img.getStyle().set("margin-bottom", "36px");

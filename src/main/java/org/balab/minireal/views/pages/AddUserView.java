@@ -6,7 +6,7 @@ import jakarta.annotation.security.RolesAllowed;
 import org.balab.minireal.views.MainLayout;
 
 @Route(value = "adduser", layout = MainLayout.class)
-@RolesAllowed("ADMIN")
+@RolesAllowed({"ADMIN", "SUPER"})
 public class AddUserView extends VerticalLayout
 {
 }

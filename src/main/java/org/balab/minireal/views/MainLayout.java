@@ -53,6 +53,7 @@ public class MainLayout extends AppLayout
 //        child_content.setSizeFull();
         child_content.setWidthFull();
         child_content.setHeight("min-content");
+        child_content.getStyle().set("overflow-y", "auto");
         footer = new VerticalLayout();
         footer.setAlignItems(FlexComponent.Alignment.CENTER);
         footer.setWidthFull();
@@ -120,7 +121,7 @@ public class MainLayout extends AppLayout
 
             // add admin nav item based on user role
             User currentUser = authenticatedUser.get().get();
-            if (currentUser.getRoles().contains(Role.ADMIN)) {
+            if (currentUser.getRoles().contains(Role.ADMIN) || currentUser.getRoles().contains(Role.OWNER)) {
                 MenuItem admin_item = nav_menu.addItem(new H4("Admin"));
                 admin_item.getStyle().set("width", "160px");
                 admin_item.getStyle().set("color", "black");

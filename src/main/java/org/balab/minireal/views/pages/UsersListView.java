@@ -30,7 +30,7 @@ import org.balab.minireal.views.MainLayout;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 @Route(value = "users", layout = MainLayout.class)
-@RolesAllowed({"ADMIN", "SUPER"})
+@RolesAllowed({"ADMIN", "OWNER"})
 public class UsersListView extends VerticalLayout
 {
     // define services
@@ -57,12 +57,20 @@ public class UsersListView extends VerticalLayout
         child_main_layout.setFlexDirection(FlexLayout.FlexDirection.COLUMN);
         child_main_layout.addClassName(LumoUtility.Gap.LARGE);
         child_main_layout.setMinWidth("50%");
+        child_main_layout.addClassName(LumoUtility.Gap.LARGE);
         add(child_main_layout);
 
         // create header
-        VerticalLayout title_layout = new VerticalLayout(new H3("Users List"));
+        H3 page_title = new H3("Users List");
+        Button add_user_btn = new Button("Add User", e -> UI.getCurrent().navigate(AddUserView.class));
+        add_user_btn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        add_user_btn.getStyle().set("margin-inline-start", "auto");
+        HorizontalLayout title_layout = new HorizontalLayout(page_title, add_user_btn);
         title_layout.setJustifyContentMode(JustifyContentMode.START);
         title_layout.getStyle().set("padding", "12px");
+        title_layout.getStyle().set("flex-wrap", "wrap");
+        title_layout.setAlignItems(Alignment.CENTER);
+
 
         if(authed_user.get().isPresent())
             current_user = authed_user.get().get();
@@ -75,6 +83,8 @@ public class UsersListView extends VerticalLayout
         setDefaultHorizontalComponentAlignment(Alignment.CENTER);
 
         setupGrid();
+
+
     }
 
     private void setupGrid() {
@@ -94,8 +104,8 @@ public class UsersListView extends VerticalLayout
                     // disable the button if user does not have enough role
                     if(
                             (user.getRoles().contains(Role.ADMIN) ||
-                                    (user.getRoles().contains(Role.SUPER))) &&
-                                    !current_user.getRoles().contains(Role.SUPER)
+                                    (user.getRoles().contains(Role.OWNER))) &&
+                                    !current_user.getRoles().contains(Role.OWNER)
                     ){
                         button.setEnabled(false);
                     }
@@ -113,8 +123,8 @@ public class UsersListView extends VerticalLayout
                     // disable the button if user does not have enough role
                     if(
                             (user.getRoles().contains(Role.ADMIN) ||
-                            (user.getRoles().contains(Role.SUPER))) &&
-                            !current_user.getRoles().contains(Role.SUPER)
+                            (user.getRoles().contains(Role.OWNER))) &&
+                            !current_user.getRoles().contains(Role.OWNER)
                     ){
                         button.setEnabled(false);
                     }
@@ -174,6 +184,7 @@ public class UsersListView extends VerticalLayout
             if(!new_passwd.isEmpty() && new_passwd.equals(new_passwd_confirm)){
                 BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
                 user.setHashedPassword(passwordEncoder.encode(new_passwd));
+                user_service.update(user);
                 Notification.show("User Password Updated successfully.").addThemeVariants(NotificationVariant.LUMO_PRIMARY);
                 reset_grid_dialog.close();
             } else {

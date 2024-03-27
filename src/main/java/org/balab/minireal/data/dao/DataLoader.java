@@ -26,30 +26,17 @@ public class DataLoader
     private void generateUsers(){
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-        // Create a user with USER role
-        if(user_service.getByUsername("user") == null)
-        {
-            User user = new User();
-            user.setUsername("user");
-            user.setName("User Name");
-            user.setHashedPassword(passwordEncoder.encode("1234"));
-            Set<Role> userRoles = new HashSet<>();
-            userRoles.add(Role.USER);
-            user.setRoles(userRoles);
-            user_service.update(user);
-        }
-
         // Create a user with ADMIN role
-        if(user_service.getByUsername("admin") == null)
+        if(user_service.getByUsername("owner") == null)
         {
-            User admin = new User();
-            admin.setUsername("admin");
-            admin.setName("Admin Name");
-            admin.setHashedPassword(passwordEncoder.encode("1234"));
-            Set<Role> adminRoles = new HashSet<>();
-            adminRoles.add(Role.ADMIN);
-            admin.setRoles(adminRoles);
-            user_service.update(admin);
+            User owner_user = new User();
+            owner_user.setUsername("owner");
+            owner_user.setName("Owner Name");
+            owner_user.setHashedPassword(passwordEncoder.encode("12345"));
+            Set<Role> ownerRoles = new HashSet<>();
+            ownerRoles.add(Role.OWNER);
+            owner_user.setRoles(ownerRoles);
+            user_service.update(owner_user);
         }
 
     }

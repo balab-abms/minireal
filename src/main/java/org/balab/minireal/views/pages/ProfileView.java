@@ -153,7 +153,7 @@ public class ProfileView extends VerticalLayout
         Button update_sim_btn = new Button("Update");
         update_sim_btn.addClickListener(event -> {
             // get the field values
-            String username = username_tf.getValue().trim();
+            String username = username_tf.getValue();
             String name = name_tf.getValue().trim();
             String passwd = passwd_pf.getValue();
             String confirm_passwd = confirm_passwd_pf.getValue();
@@ -187,7 +187,6 @@ public class ProfileView extends VerticalLayout
                 }
             }
             // update user
-            System.out.println(current_user.getId());
             user_service.update(current_user);
             Notification.show("User data successfully updated.").addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             if(authed_user.get().isPresent()){

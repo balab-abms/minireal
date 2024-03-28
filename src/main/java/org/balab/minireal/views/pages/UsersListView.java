@@ -57,7 +57,6 @@ public class UsersListView extends VerticalLayout
         child_main_layout.setFlexDirection(FlexLayout.FlexDirection.COLUMN);
         child_main_layout.addClassName(LumoUtility.Gap.LARGE);
         child_main_layout.setMinWidth("50%");
-        child_main_layout.addClassName(LumoUtility.Gap.LARGE);
         add(child_main_layout);
 
         // create header

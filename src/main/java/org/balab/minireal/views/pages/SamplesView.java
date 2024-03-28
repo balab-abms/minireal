@@ -1,6 +1,5 @@
 package org.balab.minireal.views.pages;
 
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.Grid;
@@ -17,7 +16,6 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.PermitAll;
 import org.balab.minireal.data.entity.Role;
 import org.balab.minireal.data.entity.SampleModel;
-import org.balab.minireal.data.entity.User;
 import org.balab.minireal.data.service.UserService;
 import org.balab.minireal.security.AuthenticatedUser;
 import org.balab.minireal.views.MainLayout;
@@ -72,9 +70,9 @@ public class SamplesView extends VerticalLayout
     private void setupGrid() {
         grid = new Grid<>(SampleModel.class, false);
         grid.setAllRowsVisible(true);
-        grid.addColumn(SampleModel::getModel_name).setHeader("Model").setAutoWidth(true);
-        grid.addColumn(SampleModel::getAgent_names).setHeader("Agents").setAutoWidth(true);
-        grid.addColumn(SampleModel::getField_names).setHeader("Fields").setAutoWidth(true);
+        grid.addColumn(SampleModel::getModel).setHeader("Model").setAutoWidth(true);
+        grid.addColumn(SampleModel::getAgents).setHeader("Agents").setAutoWidth(true);
+        grid.addColumn(SampleModel::getFields).setHeader("Fields").setAutoWidth(true);
         grid.addColumn(
                 new ComponentRenderer<>(Button::new, (button, user) -> {
                     button.addThemeVariants(ButtonVariant.LUMO_ICON);

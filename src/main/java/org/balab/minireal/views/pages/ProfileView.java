@@ -83,7 +83,7 @@ public class ProfileView extends VerticalLayout
         // setup binder
         user_form_binder = new Binder<>(User.class);
 
-        user_saved_dir = storage_properties.getPath() + File.separator + authed_user.get().get().getId();
+        user_saved_dir = storage_properties.getUsers() + File.separator + authed_user.get().get().getId();
         profile_pic_data = null;
         pic_file_name = null;
 

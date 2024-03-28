@@ -1,16 +1,11 @@
 package org.balab.minireal.views.pages;
 
 import com.vaadin.flow.component.UI;
-import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.charts.model.Dial;
-import com.vaadin.flow.component.charts.model.Label;
 import com.vaadin.flow.component.combobox.ComboBox;
-import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
-import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.html.NativeLabel;
@@ -27,11 +22,9 @@ import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.binder.PropertyId;
 import com.vaadin.flow.data.binder.ValidationException;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.server.StreamResource;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.PermitAll;
 import org.balab.minireal.data.entity.SimForm;
-import org.balab.minireal.data.entity.User;
 import org.balab.minireal.data.service.OsService;
 import org.balab.minireal.data.service.StorageProperties;
 import org.balab.minireal.security.AuthenticatedUser;
@@ -42,11 +35,7 @@ import sim.field.continuous.Continuous2D;
 import sim.field.grid.Grid2D;
 import sim.util.Bag;
 
-import java.awt.*;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -106,7 +95,7 @@ public class CreateModelView extends VerticalLayout
         addAttachListener(event -> this.form_ui = event.getUI());
         if(authenticated_user.get().isPresent()){
             user_id = authenticated_user.get().get().getId();
-            user_saved_dir = storage_properties.getPath() + File.separator + authenticated_user.get().get().getId();
+            user_saved_dir = storage_properties.getUsers() + File.separator + authenticated_user.get().get().getId();
         } else {
             authenticated_user.logout();
         }

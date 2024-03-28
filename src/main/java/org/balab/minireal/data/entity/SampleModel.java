@@ -9,8 +9,8 @@ import lombok.Setter;
 @Setter
 public class SampleModel extends AbstractEntity
 {
-    String model_name;
-    String[] agent_names;
-    String[] field_names;
-    String file_path;
+    String model;
+    String[] agents;
+    String[] fields;
+    String path;
 }

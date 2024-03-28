@@ -123,35 +123,41 @@ public class AddUserView extends VerticalLayout
 
         Button save_user_btn = new Button("Save");
         save_user_btn.addClickListener(event -> {
-            // get the field values
-            String username = username_tf.getValue();
-            String name = name_tf.getValue().trim();
-            String passwd = passwd_pf.getValue();
-            String confirm_passwd = confirm_passwd_pf.getValue();
+            try
+            {
+                // get the field values
+                String username = username_tf.getValue();
+                String name = name_tf.getValue().trim();
+                String passwd = passwd_pf.getValue();
+                String confirm_passwd = confirm_passwd_pf.getValue();
 
-            if(!isFilledFormElements()){
-                Notification.show("Please fill all fields").addThemeVariants(NotificationVariant.LUMO_ERROR);
-                throw new RuntimeException("Error: all fields not filled.");
+                if(!isFilledFormElements()){
+                    Notification.show("Please fill all fields").addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    throw new RuntimeException("Error: all fields not filled.");
+                }
+                if(!passwd.equals(confirm_passwd)) {
+                    Notification.show("Password & Confirm Password don't match.").addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    throw new RuntimeException("Passwords don't match");
+                }
+
+                User new_user = new User();
+                new_user.setUsername(username);
+                new_user.setName(name);
+                BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+                new_user.setHashedPassword(passwordEncoder.encode(passwd));
+                Set<Role> user_roles = new HashSet<>();
+                user_roles.add(user_role_combo.getValue());
+                new_user.setRoles(user_roles);
+
+                // save user
+                user_service.update(new_user);
+                Notification.show("User successfully created.").addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                UI.getCurrent().navigate(UsersListView.class);
+            } catch (Exception exp) {
+                Notification.show("User creation failed.").addThemeVariants(NotificationVariant.LUMO_ERROR);
+                throw new RuntimeException("Error in user creation");
             }
-            if(!passwd.equals(confirm_passwd)) {
-                Notification.show("Password & Confirm Password don't match.").addThemeVariants(NotificationVariant.LUMO_ERROR);
-                throw new RuntimeException("Passwords don't match");
-            }
 
-
-            User new_user = new User();
-            new_user.setUsername(username);
-            new_user.setName(name);
-            BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-            new_user.setHashedPassword(passwordEncoder.encode(passwd));
-            Set<Role> user_roles = new HashSet<>();
-            user_roles.add(user_role_combo.getValue());
-            new_user.setRoles(user_roles);
-
-            // save user
-            user_service.update(new_user);
-            Notification.show("User successfully created.").addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-            UI.getCurrent().navigate(UsersListView.class);
         });
         save_user_btn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 

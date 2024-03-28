@@ -24,10 +24,14 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.RolesAllowed;
 import org.balab.minireal.data.entity.Role;
 import org.balab.minireal.data.entity.User;
+import org.balab.minireal.data.service.StorageProperties;
 import org.balab.minireal.data.service.UserService;
 import org.balab.minireal.security.AuthenticatedUser;
 import org.balab.minireal.views.MainLayout;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
+import java.io.File;
+import java.io.IOException;
 
 @Route(value = "users", layout = MainLayout.class)
 @RolesAllowed({"ADMIN", "OWNER"})
@@ -36,6 +40,7 @@ public class UsersListView extends VerticalLayout
     // define services
     private final UserService user_service;
     private final AuthenticatedUser authed_user;
+    private final StorageProperties storage_properties;
     // define elements
     FlexLayout child_main_layout;
     private Grid<User> grid;
@@ -44,12 +49,14 @@ public class UsersListView extends VerticalLayout
     User current_user;
     public UsersListView(
             AuthenticatedUser authed_user,
-            UserService user_service
+            UserService user_service,
+            StorageProperties storage_properties
     )
     {
         // initialize services
         this.user_service = user_service;
         this.authed_user = authed_user;
+        this.storage_properties = storage_properties;
 
         // setup layout
         setSizeFull();
@@ -149,10 +156,20 @@ public class UsersListView extends VerticalLayout
         Button delete_user_btn = new Button("Delete");
         delete_user_btn.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_ERROR);
         delete_user_btn.addClickListener(event -> {
-            user_service.delete(user.getId());
-            Notification.show("User Deleted successfully.").addThemeVariants(NotificationVariant.LUMO_PRIMARY);
-            delete_grid_dialog.close();
-            UI.getCurrent().getPage().reload();
+            try
+            {
+                user_service.delete(user.getId());
+                Notification.show("User Deleted successfully.").addThemeVariants(NotificationVariant.LUMO_PRIMARY);
+                delete_grid_dialog.close();
+                if (authed_user.get().isPresent())
+                    UI.getCurrent().getPage().reload();
+                else
+                    authed_user.logout();
+            } catch (IOException e)
+            {
+                Notification.show("Error in deleting User.").addThemeVariants(NotificationVariant.LUMO_ERROR);
+                throw new RuntimeException(e);
+            }
         });
         delete_grid_dialog.setConfirmButton(delete_user_btn);
         delete_grid_dialog.open();

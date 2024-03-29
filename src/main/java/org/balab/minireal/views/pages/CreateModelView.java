@@ -53,11 +53,11 @@ public class CreateModelView extends VerticalLayout
     // define elements
     FlexLayout child_main_layout;
     HorizontalLayout dialog_buttons_layout;
-    @PropertyId("name")
+//    @PropertyId("name")
     TextField model_name;
     TextField field_name;
     ComboBox<Class> field_type;
-    @PropertyId("name")
+//    @PropertyId("name")
     TextField agent_name;
     NumberField agent_popln;
     Binder<SimForm> form_binder;

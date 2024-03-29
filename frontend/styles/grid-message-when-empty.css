@@ -1,0 +1,34 @@
+.grid-message {
+    --grid-heigth: 400px;
+    height: 100%;
+    width: 100%;
+}
+
+.grid-message .grid-root {
+    position: relative;
+    height: var(--grid-heigth);
+    width: 100%;
+}
+
+.grid-message .grid,
+.grid-message .warning {
+    height: var(--grid-heigth);
+    width: 100%;
+    position: absolute;
+}
+
+.grid-message .warning {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 32px;
+}
+
+.grid-message .warning.hidden {
+    display: none;
+}
+
+.grid {
+    left: 50%;
+    transform: translate(-50%, 0);
+}

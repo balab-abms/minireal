@@ -206,7 +206,7 @@ public class ProfileView extends VerticalLayout
 
         // add items to vertical Layout and set alignment
         child_main_layout.add(title_layout, user_form, button_layout);
-        setAlignSelf(Alignment.CENTER, user_form);
+        child_main_layout.setAlignSelf(Alignment.CENTER, user_form);
         setDefaultHorizontalComponentAlignment(Alignment.CENTER);
     }
 

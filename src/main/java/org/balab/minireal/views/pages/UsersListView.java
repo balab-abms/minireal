@@ -101,8 +101,7 @@ public class UsersListView extends VerticalLayout
         grid.addColumn(User::getRoles).setHeader("Roles").setAutoWidth(true);
         grid.addColumn(
                 new ComponentRenderer<>(Button::new, (button, user) -> {
-                    button.addThemeVariants(ButtonVariant.LUMO_ICON,
-                            ButtonVariant.LUMO_TERTIARY);
+                    button.addThemeVariants(ButtonVariant.LUMO_ICON);
                     button.addClickListener(e -> {
                         setupResetConfirmGrid(user);
                     });
@@ -120,8 +119,7 @@ public class UsersListView extends VerticalLayout
         grid.addColumn(
                 new ComponentRenderer<>(Button::new, (button, user) -> {
                     button.addThemeVariants(ButtonVariant.LUMO_ICON,
-                            ButtonVariant.LUMO_ERROR,
-                            ButtonVariant.LUMO_TERTIARY);
+                            ButtonVariant.LUMO_ERROR);
                     button.addClickListener(e -> {
                         setupDeleteConfirmGrid(user);
                     });

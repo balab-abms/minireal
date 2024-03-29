@@ -50,7 +50,7 @@ import java.util.Arrays;
 @Route(value = "sample", layout = MainLayout.class)
 @RouteAlias(value = "", layout = MainLayout.class)
 @PermitAll
-@CssImport("styles/grid-message-when-empty.css")
+@CssImport("./styles/grid-message-when-empty.css")
 public class SamplesView extends VerticalLayout
 {
     // define services
@@ -106,7 +106,7 @@ public class SamplesView extends VerticalLayout
         gridRoot.addClassName("grid-root");
         Div warning = new Div(new Text("There are no sample models to display."));
         warning.addClassName("warning");
-//        gridRoot.setWidthFull();
+        gridRoot.setWidthFull();
         gridRoot.add(grid, warning);
 
         DataProvider dataProvider = grid.getDataProvider();
@@ -194,7 +194,7 @@ public class SamplesView extends VerticalLayout
             try
             {
                 samples_service.deleteSampleModel(sample_model.getId());
-                Notification.show("User Deleted successfully.").addThemeVariants(NotificationVariant.LUMO_PRIMARY);
+                Notification.show("Sample Model Deleted successfully.").addThemeVariants(NotificationVariant.LUMO_PRIMARY);
                 delete_grid_dialog.close();
                 UI.getCurrent().getPage().reload();
             } catch (IOException e)

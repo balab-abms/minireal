@@ -7,18 +7,23 @@ import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
+import com.vaadin.flow.dom.DomEvent;
+import com.vaadin.flow.dom.DomEventListener;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import org.apache.commons.io.IOUtils;
+import org.balab.minireal.data.entity.SampleModel;
+import org.balab.minireal.data.service.SampleModelService;
 import org.balab.minireal.security.AuthenticatedUser;
 import org.balab.minireal.views.MainLayout;
 
@@ -33,6 +38,7 @@ import java.util.Set;
 public class AddSampleView extends VerticalLayout {
     // define services
     private final AuthenticatedUser authed_user;
+    private final SampleModelService samples_service;
 
     // define elements
     FlexLayout child_main_layout;
@@ -46,9 +52,11 @@ public class AddSampleView extends VerticalLayout {
     byte[] model_data;
     String model_file_name;
     public AddSampleView(
-            AuthenticatedUser authed_user
+            AuthenticatedUser authed_user,
+            SampleModelService samples_service
     ) {
         this.authed_user = authed_user;
+        this.samples_service = samples_service;
 
         // setup layout
         setSizeFull();
@@ -116,6 +124,16 @@ public class AddSampleView extends VerticalLayout {
                 throw new RuntimeException(e);
             }
         });
+        model_file_upload.getElement().addEventListener("upload-abort", new DomEventListener()
+        {
+            @Override
+            public void handleEvent(DomEvent domEvent)
+            {
+                System.out.println("File Upload Aborted by User.");
+                model_data = null;
+                model_file_name = null;
+            }
+        });
 
         // create form add fields
         FormLayout sample_form = new FormLayout();
@@ -136,6 +154,22 @@ public class AddSampleView extends VerticalLayout {
 
         Button save_model_btn = new Button("Save");
         save_model_btn.addClickListener(event -> {
+            if(isFieldsFilled()){
+                String model_name = model_tf.getValue();
+                String[] agent_names = agent_combo.getValue().toArray(new String[]{});
+                String[] field_names = field_combo.getValue().toArray(new String[]{});
+                SampleModel new_sample = new SampleModel();
+                new_sample.setModel(model_name);
+                new_sample.setAgents(agent_names);
+                new_sample.setFields(field_names);
+                samples_service.saveSampleModel(new_sample, model_file_name, model_data);
+
+                Notification.show("Sample Model successfully saved.").addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                UI.getCurrent().navigate(SamplesView.class);
+            } else {
+                Notification.show("Please fill all fields").addThemeVariants(NotificationVariant.LUMO_ERROR);
+                throw new RuntimeException("All fields not filled");
+            }
 
         });
         save_model_btn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
@@ -150,6 +184,12 @@ public class AddSampleView extends VerticalLayout {
         child_main_layout.add(title_layout, sample_form, button_layout);
         child_main_layout.setAlignSelf(Alignment.CENTER, sample_form);
         setDefaultHorizontalComponentAlignment(Alignment.CENTER);
+
+    }
+
+    private boolean isFieldsFilled(){
+        return !model_tf.isEmpty() && !agent_combo.isEmpty() && !field_combo.isEmpty()
+                && model_data != null;
 
     }
 }

@@ -4,7 +4,7 @@
 .settings
 .project
 .classpath
-data/
+/data/
 
 *.iml
 .DS_Store

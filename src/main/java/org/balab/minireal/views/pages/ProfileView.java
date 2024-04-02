@@ -177,13 +177,19 @@ public class ProfileView extends VerticalLayout
             }
             // update profile pic
             if(profile_pic_data != null){
-                Long user_id = authed_user.get().get().getId();
-                String pic_path = user_saved_dir + File.separator + "profile_pics" + File.separator + pic_file_name;
-                boolean pic_saved = fs_service.saveFile(pic_path, profile_pic_data);
-                if(pic_saved)
+                try{
+                    Long user_id = authed_user.get().get().getId();
+                    String pic_path = user_saved_dir + File.separator + "profile_pics" + File.separator + pic_file_name;
+                    boolean pic_saved = fs_service.saveFile(pic_path, profile_pic_data);
+                    if(pic_saved)
+                    {
+                        current_user.setProfilePath(pic_path);
+                        UI.getCurrent().getSession().setAttribute(AvatarUpdateToken.class, new AvatarUpdateToken(this.toString()));
+                    }
+                } catch (IOException e)
                 {
-                    current_user.setProfilePath(pic_path);
-                    UI.getCurrent().getSession().setAttribute(AvatarUpdateToken.class, new AvatarUpdateToken(this.toString()));
+                    Notification.show("File upload failed.").addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    throw new RuntimeException(e);
                 }
             }
             // update user

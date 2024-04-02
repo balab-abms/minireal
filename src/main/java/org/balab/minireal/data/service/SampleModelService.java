@@ -36,11 +36,18 @@ public class SampleModelService
     public SampleModel saveSampleModel(SampleModel sample_model, String file_name,  byte[] model_byte){
         SampleModel sample = sample_repo.save(sample_model);
         if(sample.getPath() == null){
-            String model_path = storage_properties.getSystem() + File.separator + sample.getId() + File.separator + file_name;
-            boolean is_saved = fs_service.saveFile(model_path, model_byte);
-            if (is_saved){
-                sample.setPath(model_path);
-                saveSampleModel(sample);
+            try
+            {
+                String model_path = storage_properties.getSystem() + File.separator + sample.getId() + File.separator + file_name;
+                boolean is_saved = fs_service.saveFile(model_path, model_byte);
+                if (is_saved)
+                {
+                    sample.setPath(model_path);
+                    saveSampleModel(sample);
+                }
+            } catch (IOException e)
+            {
+                throw new RuntimeException(e);
             }
         }
         return sample;

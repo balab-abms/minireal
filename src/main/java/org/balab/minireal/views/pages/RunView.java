@@ -25,6 +25,7 @@ import org.apache.commons.io.IOUtils;
 import org.balab.minireal.data.entity.SimSession;
 import org.balab.minireal.data.service.FileSystemService;
 import org.balab.minireal.data.service.SimSessionService;
+import org.balab.minireal.data.service.SimulationService;
 import org.balab.minireal.data.service.StorageProperties;
 import org.balab.minireal.security.AuthenticatedUser;
 import org.balab.minireal.views.MainLayout;
@@ -49,6 +50,7 @@ public class RunView extends VerticalLayout
     private final StorageProperties storage_properties;
     private final SimSessionService sim_session_service;
     private final UIRelatedHelpers ui_helper_service;
+    private final SimulationService sim_service;
 
 
     // define elements
@@ -78,7 +80,8 @@ public class RunView extends VerticalLayout
             FileSystemService fs_service,
             StorageProperties storage_properties,
             UIRelatedHelpers ui_helper_service,
-            SimSessionService sim_session_service
+            SimSessionService sim_session_service,
+            SimulationService sim_service
     ){
         // initialize services
         this.authed_user = authed_user;
@@ -86,6 +89,7 @@ public class RunView extends VerticalLayout
         this.storage_properties = storage_properties;
         this.ui_helper_service = ui_helper_service;
         this.sim_session_service = sim_session_service;
+        this.sim_service = sim_service;
 
         // setup layout
         setSizeFull();
@@ -128,8 +132,9 @@ public class RunView extends VerticalLayout
         model_upload.setMinHeight("150px");
         model_upload.setWidthFull();
         model_upload.getStyle().set("display", "flex");
+        model_upload.getStyle().set("flex-direction", "column");
         model_upload.getStyle().set("justify-content", "center");
-        model_upload.getStyle().set("align-items", "center");
+        // model_upload.getStyle().set("align-items", "stretch");
         model_upload.addSucceededListener(event -> {
             modelUploadSuccess(event.getFileName());
         });
@@ -164,11 +169,24 @@ public class RunView extends VerticalLayout
         start_btn = new Button("Start");
         start_btn.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
         start_btn.addClickListener(event -> {
-
+            // start the simulation
+            this.setStartButtonListener();
         });
         stop_btn = new Button("Stop");
         stop_btn.addThemeVariants(ButtonVariant.LUMO_ERROR);
         stop_btn.addClickListener(event -> {
+            // run the simulation in a new thread
+            new Thread(() -> {
+                // stop the simulation
+                boolean is_sim_stopped = sim_service.stopSimulation(sim_session);
+                getUI().ifPresent(ui -> ui.access(() -> {
+                    if (is_sim_stopped) {
+                        Notification.show("Simulation stopped").addThemeVariants(NotificationVariant.LUMO_PRIMARY);
+                    } else {
+                        Notification.show("No simulation running for this token").addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    }
+                }));
+            }).start();
 
         });
         this.setSimulationButtons(false);
@@ -222,7 +240,7 @@ public class RunView extends VerticalLayout
                     .getAsString();
             sim_session.setModel_name(model_name);
             sim_session.setFile_path(model_uploaded_path);
-            sim_session_service.updateSimSession(sim_session);
+            sim_session = sim_session_service.updateSimSession(sim_session);
             // update model name on UI
             model_name_label.setText(model_name);
 
@@ -238,5 +256,50 @@ public class RunView extends VerticalLayout
         start_btn.setEnabled(status);
         stop_btn.setEnabled(status);
     }
+
+    public void setStartButtonListener() {
+        try {
+            if (!model_uploaded_path.isEmpty()) {
+                // get param values and database checkbox value
+                String param_json = param_view.getParamsValue();
+
+                // todo: create sim ui data listener
+//            ManualKafkaListener listener = new ManualKafkaListener(kafka_broker, "tick", tick_publisher);
+//            Thread thread = new Thread(listener, sim_session.getToken());
+//            thread.start();
+
+
+                // run the simulation in a new thread
+                new Thread(() -> {
+                    try {
+                        boolean is_sim_run = sim_service.runSimulation(model_uploaded_path, param_json, sim_session);
+
+                        // UI updates should be run on the UI thread
+                        getUI().ifPresent(ui -> ui.access(() -> {
+                            if (is_sim_run) {
+                                Notification.show("Simulation run successful").addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                            }
+
+                            // reset the chart
+                            if (config.data().getDatasets() != null) {
+                                config.data().getDatasets().clear();
+                                config.data().getLabels().clear();
+                            }
+                        }));
+                    } catch (IOException | InterruptedException e) {
+                        getUI().ifPresent(ui -> ui.access(() -> {
+                            Notification.show("Simulation failed").addThemeVariants(NotificationVariant.LUMO_ERROR);
+                        }));
+                        throw new RuntimeException(e);
+                    }
+                }).start();
+            }
+        } catch (Exception e) {
+            Notification.show("Simulation failed").addThemeVariants(NotificationVariant.LUMO_ERROR);
+            throw new RuntimeException(e);
+        }
+    }
+
+
 
 }

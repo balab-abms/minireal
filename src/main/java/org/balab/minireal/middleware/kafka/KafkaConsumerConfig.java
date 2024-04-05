@@ -1,4 +1,4 @@
-package org.simreal.abm.middleware.kafka;
+package org.balab.minireal.middleware.kafka;
 
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;

@@ -21,7 +21,7 @@ public class StartupRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        String kafka_serilizer_path = "sim-service" + File.separator + "dependencies" + File.separator + "kafka_template.ser";
+        String kafka_serilizer_path = "simreal_data" + File.separator + "dependencies" + File.separator + "kafka_template.ser";
         writeKafkaTemplateToFile(kafkaTemplate, kafka_serilizer_path);
         System.out.println("Kafka template serialized.");
     }

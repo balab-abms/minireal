@@ -15,7 +15,7 @@ public class ReactorMessageService
 {
     // define publisher Beans
     @Bean
-    Many<Object> display_publisher()
+    Many<Object> chart_publisher()
     {
         Many<Object> chatSink = Sinks.many().multicast().directBestEffort();
         return chatSink;
@@ -28,30 +28,11 @@ public class ReactorMessageService
         return chatSink;
     }
 
-    @Bean
-    Many<ArrayList<SimUI>> visuals_publisher()
-    {
-        Many<ArrayList<SimUI>> chatSink = Sinks.many().multicast().directBestEffort();
-        return chatSink;
-    }
 
-    @Bean
-    Many<Map<String, Object>> db_results_publisher()
-    {
-        Many<Map<String, Object>> chatSink = Sinks.many().multicast().directBestEffort();
-        return chatSink;
-    }
-
-    @Bean
-    Many<String> db_signals_publisher()
-    {
-        Many<String> chatSink = Sinks.many().multicast().directBestEffort();
-        return chatSink;
-    }
 
     // define subscriber Beans
     @Bean
-    Flux<Object> display_subscriber(Many<Object> chatSink)
+    Flux<Object> chart_subscriber(Many<Object> chatSink)
     {
         return chatSink.asFlux();
     }
@@ -62,22 +43,5 @@ public class ReactorMessageService
         return chatSink.asFlux();
     }
 
-    @Bean
-    Flux<ArrayList<SimUI>> visuals_subscriber(Many<ArrayList<SimUI>> chatSink)
-    {
-        return chatSink.asFlux();
-    }
-
-    @Bean
-    Flux<Map<String, Object>> db_results_subscriber(Many<Map<String, Object>> chatSink)
-    {
-        return chatSink.asFlux();
-    }
-
-    @Bean
-    Flux<String> db_signals_subscriber(Many<String> chatSink)
-    {
-        return chatSink.asFlux();
-    }
 
 }

@@ -30,10 +30,16 @@ public class SimulationService
         process_map.put(sim_session.getToken(), process);
 
         // Capture the output stream
-        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        BufferedReader outputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
         String line;
-        while ((line = reader.readLine()) != null) {
+        while ((line = outputReader.readLine()) != null) {
             System.out.println(line);
+        }
+
+        // Capture the error stream
+        BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+        while ((line = errorReader.readLine()) != null) {
+            System.err.println(line);
         }
 
         int exitCode = process.waitFor();

@@ -34,12 +34,6 @@ public class UIRelatedHelpers
         LineChartConfig config = new LineChartConfig();
         config.data()
                 .labels()
-                .addDataset(new LineDataset().type().label("")
-                        .backgroundColor("rgba(255,255,255,0)")
-                        .borderColor("rgb(151,187,205)")
-                        .borderWidth(2)
-                        .pointRadius(0)
-                )
                 .and();
 
         config.options()
@@ -50,17 +44,14 @@ public class UIRelatedHelpers
                 .position(Position.TOP)
                 .text("Simulation Data Chart")
                 .and()
+                .animation() // Add this line
+                .duration(0) // Set animation duration to 0
+                .and()
                 .done();
         config.
                 options()
                 .maintainAspectRatio(false)
                 .scales()
-                .and()
-                .zoom()
-                .enabled(true)
-                .drag(true)
-                .mode(XYMode.X)
-                .sensitivity(0.75)
                 .and()
                 .tooltips()
                 .bodySpacing(10)
@@ -118,5 +109,21 @@ public class UIRelatedHelpers
         StreamResource zip_stream_resource = new StreamResource(zip_file.getName(), () -> zip_stream);
 
         return zip_file;
+    }
+
+    public String stringToRGB(String str) {
+        StringBuilder hex = new StringBuilder();
+        byte[] bytes = str.getBytes();
+        for (byte b : bytes) {
+            hex.append(String.format("%02X", b));
+        }
+//        System.out.println(hex.toString());
+
+        int r = Integer.parseInt(hex.substring(1, 3), 16);
+        int g = Integer.parseInt(hex.substring(3, 5), 16);
+        int b = Integer.parseInt(hex.substring(5, 7), 16);
+        String rgb_string =  "rgb(" + r + "," + g + "," + b + ")";
+//        System.out.println(rgb_string);
+        return rgb_string;
     }
 }

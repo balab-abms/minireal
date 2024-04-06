@@ -1,6 +1,7 @@
 package org.balab.minireal.views.pages;
 
 import com.google.gson.JsonParser;
+import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -14,11 +15,13 @@ import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.textfield.TextFieldVariant;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.dom.DomEvent;
 import com.vaadin.flow.dom.DomEventListener;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.theme.Theme;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.PermitAll;
 import org.apache.commons.io.IOUtils;
@@ -27,11 +30,16 @@ import org.balab.minireal.data.service.FileSystemService;
 import org.balab.minireal.data.service.SimSessionService;
 import org.balab.minireal.data.service.SimulationService;
 import org.balab.minireal.data.service.StorageProperties;
+import org.balab.minireal.middleware.kafka.KafkaTopicDeleter;
+import org.balab.minireal.middleware.kafka.listener.ChartListener;
+import org.balab.minireal.middleware.kafka.listener.TickListener;
 import org.balab.minireal.security.AuthenticatedUser;
 import org.balab.minireal.views.MainLayout;
 import org.balab.minireal.views.components.DBView;
 import org.balab.minireal.views.components.ParamView;
+import org.balab.minireal.views.helpers.SImRelatedHelpers;
 import org.balab.minireal.views.helpers.UIRelatedHelpers;
+import org.springframework.beans.factory.annotation.Value;
 import org.vaadin.addons.chartjs.ChartJs;
 import org.vaadin.addons.chartjs.config.LineChartConfig;
 
@@ -51,6 +59,8 @@ public class RunView extends VerticalLayout
     private final SimSessionService sim_session_service;
     private final UIRelatedHelpers ui_helper_service;
     private final SimulationService sim_service;
+    private final SImRelatedHelpers sim_helper_service;
+    private final KafkaTopicDeleter kafka_topic_deleter_service;
 
 
     // define elements
@@ -74,14 +84,19 @@ public class RunView extends VerticalLayout
     private Boolean is_model_ran;
     private ParamView param_view;
     private DBView db_view;
+    // property values
+    @Value("${spring.kafka.bootstrap-servers}")
+    private String kafka_broker;
 
     public RunView(
             AuthenticatedUser authed_user,
             FileSystemService fs_service,
             StorageProperties storage_properties,
             UIRelatedHelpers ui_helper_service,
+            SImRelatedHelpers sim_helper_service,
             SimSessionService sim_session_service,
-            SimulationService sim_service
+            SimulationService sim_service,
+            KafkaTopicDeleter kafka_topic_deleter_service
     ){
         // initialize services
         this.authed_user = authed_user;
@@ -90,6 +105,8 @@ public class RunView extends VerticalLayout
         this.ui_helper_service = ui_helper_service;
         this.sim_session_service = sim_session_service;
         this.sim_service = sim_service;
+        this.sim_helper_service = sim_helper_service;
+        this.kafka_topic_deleter_service = kafka_topic_deleter_service;
 
         // setup layout
         setSizeFull();
@@ -162,10 +179,11 @@ public class RunView extends VerticalLayout
         tick_tf = new TextField();
         tick_tf.setEnabled(false);
         tick_tf.setWidth("75px");
+        tick_tf.addThemeVariants(TextFieldVariant.LUMO_ALIGN_CENTER);
         HorizontalLayout tick_layout = new HorizontalLayout(tick_label, tick_tf);
         tick_layout.setJustifyContentMode(JustifyContentMode.CENTER);
         tick_layout.setAlignItems(Alignment.CENTER);
-        // setup buttons
+        // setup buttonsl
         start_btn = new Button("Start");
         start_btn.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
         start_btn.addClickListener(event -> {
@@ -244,6 +262,12 @@ public class RunView extends VerticalLayout
             // update model name on UI
             model_name_label.setText(model_name);
 
+            // reset the chart
+            if (config.data().getDatasets() != null) {
+                config.data().getDatasets().clear();
+                config.data().getLabels().clear();
+            }
+
         } catch (IOException e){
             throw new RuntimeException(e);
         }
@@ -260,35 +284,60 @@ public class RunView extends VerticalLayout
     public void setStartButtonListener() {
         try {
             if (!model_uploaded_path.isEmpty()) {
+                // reset the chart
+                if (config.data().getDatasets() != null) {
+                    config.data().getDatasets().clear();
+                    config.data().getLabels().clear();
+                }
+
                 // get param values and database checkbox value
                 String param_json = param_view.getParamsValue();
 
-                // todo: create sim ui data listener
-//            ManualKafkaListener listener = new ManualKafkaListener(kafka_broker, "tick", tick_publisher);
-//            Thread thread = new Thread(listener, sim_session.getToken());
-//            thread.start();
+                // start the tick listener
+                TickListener tick_listener = new TickListener(kafka_broker, this.sim_session.getToken(), this.run_ui, this.tick_tf);
+                Thread tick_thread = new Thread(tick_listener, "tick" + sim_session.getToken());
+                tick_thread.start();
 
+                // start the chart listener
+                ChartListener chart_listener = new ChartListener(
+                        ui_helper_service,
+                        kafka_broker,
+                        this.sim_session.getToken(),
+                        this.run_ui,
+                        chartJs
+                );
+                Thread chart_thread = new Thread(chart_listener, "chart" + sim_session.getToken());
+                chart_thread.start();
 
                 // run the simulation in a new thread
                 new Thread(() -> {
                     try {
+                        sim_session.set_running(true);
+                        sim_session.set_completed(false);
+                        sim_session.set_failed(false);
+                        sim_session = sim_session_service.updateSimSession(sim_session);
+
                         boolean is_sim_run = sim_service.runSimulation(model_uploaded_path, param_json, sim_session);
 
                         // UI updates should be run on the UI thread
                         getUI().ifPresent(ui -> ui.access(() -> {
                             if (is_sim_run) {
-                                Notification.show("Simulation run successful").addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                            }
+                                sim_session.set_completed(true);
+                                sim_session = sim_session_service.updateSimSession(sim_session);
 
-                            // reset the chart
-                            if (config.data().getDatasets() != null) {
-                                config.data().getDatasets().clear();
-                                config.data().getLabels().clear();
+                                Notification.show("Simulation run successful").addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                                // delete listener threads and kafka topics
+                                deleteThreadsTopics();
                             }
                         }));
                     } catch (IOException | InterruptedException e) {
                         getUI().ifPresent(ui -> ui.access(() -> {
+                            sim_session.set_failed(true);
+                            sim_session = sim_session_service.updateSimSession(sim_session);
+
                             Notification.show("Simulation failed").addThemeVariants(NotificationVariant.LUMO_ERROR);
+                            // delete listener threads and kafka topics
+                            deleteThreadsTopics();
                         }));
                         throw new RuntimeException(e);
                     }
@@ -300,6 +349,26 @@ public class RunView extends VerticalLayout
         }
     }
 
+    @Override
+    protected void onDetach(DetachEvent detachEvent)
+    {
+        // delete listener threads and kafka topics
+        deleteThreadsTopics();
 
+        super.onDetach(detachEvent);
+    }
 
+    private void deleteThreadsTopics(){
+        // delete kafka listener threads
+        Thread tick_thread_del = sim_helper_service.getThreadByName("tick" + sim_session.getToken());
+        sim_helper_service.interruptThread(tick_thread_del);
+
+        Thread chart_thread_del = sim_helper_service.getThreadByName("chart" + sim_session.getToken());
+        sim_helper_service.interruptThread(chart_thread_del);
+
+        // delete kafka topics
+        kafka_topic_deleter_service.deleteTopic("tick" + sim_session.getToken());
+        kafka_topic_deleter_service.deleteTopic("chart" + sim_session.getToken());
+        kafka_topic_deleter_service.deleteTopic("db" + sim_session.getToken());
+    }
 }

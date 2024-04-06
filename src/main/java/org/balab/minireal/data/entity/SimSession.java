@@ -27,6 +27,8 @@ public class SimSession extends AbstractEntity
 
     private String model_name;
     private boolean is_running = false;
+    private boolean is_completed = false;
+    private boolean is_failed = false;
     private String db_name;
     private String file_path;
     private LocalDateTime created_at;

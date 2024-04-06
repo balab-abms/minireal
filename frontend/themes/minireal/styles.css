@@ -1,1 +1,5 @@
 @import url('./main-layout.css');
+
+vaadin-text-field::part(input-field) ::slotted(input) {
+    text-align: center;
+}

@@ -110,14 +110,23 @@ public class ChartListener implements Runnable {
                 parent_ui.access(() -> {
                     chartJs.update();
                 });
+                System.out.println("Chart thread listening");
+
             }
-        }catch (Exception exp){
-            System.out.println(exp.getMessage());
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+//            Thread.currentThread().interrupt(); // Preserve the interrupt
+            System.out.println("Thread was interrupted, closing consumer.");
+
+        } finally {
+            running = false;
+            consumer.unsubscribe();
+            System.out.println("Resource Cleaned");
         }
     }
 
     public void stop() {
         running = false;
-        consumer.close();
+        consumer.unsubscribe();
     }
 }

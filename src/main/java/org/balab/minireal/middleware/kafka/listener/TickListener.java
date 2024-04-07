@@ -44,7 +44,7 @@ public class TickListener implements Runnable {
         try {
             String topic = "tick" + sim_session_token;
             consumer.subscribe(Collections.singletonList(topic));
-            while (running) {
+            while (!Thread.currentThread().isInterrupted() && running) {
                 ConsumerRecords<String, Object> records = consumer.poll(Duration.ofMillis(1000));
                 for (ConsumerRecord<String, Object> record : records) {
                     parent_ui.access(() -> {
@@ -53,14 +53,22 @@ public class TickListener implements Runnable {
                     });
 //                    System.out.printf("offset = %d, key = %s, value = %s%n", record.offset(), record.key(), record.value());
                 }
+                System.out.println("Tick thread listening");
             }
-        } catch (Exception exp){
-            System.out.println(exp.getMessage());
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+//            Thread.currentThread().interrupt(); // Preserve the interrupt
+            System.out.println("Thread was interrupted, closing consumer.");
+        }
+        finally {
+            running = false;
+            consumer.unsubscribe();
+            System.out.println("Resource Cleaned");
         }
     }
 
     public void shutdown() {
         running = false;
-        consumer.close();
+        consumer.unsubscribe();
     }
 }

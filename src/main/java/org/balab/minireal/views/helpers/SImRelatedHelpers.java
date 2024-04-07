@@ -16,8 +16,8 @@ public class SImRelatedHelpers
     public void interruptThread(Thread thread)
     {
         if(thread != null){
-            thread.stop();
-//            thread.interrupt();
+//            thread.stop();
+            thread.interrupt();
             System.out.println("Thread deleted");
         }
     }

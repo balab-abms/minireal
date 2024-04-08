@@ -5,6 +5,7 @@ import org.balab.minireal.data.entity.User;
 import org.balab.minireal.data.repository.SimSessionRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -40,5 +41,13 @@ public class SimSessionService
     public  SimSession updateSimSession(SimSession sim_session)
     {
         return simSessionRepository.save(sim_session);
+    }
+
+    public void deleteSimSession(SimSession sim_session){
+        simSessionRepository.delete(sim_session);
+    }
+
+    public List<SimSession> getAllSimSessions(){
+        return simSessionRepository.findAll();
     }
 }

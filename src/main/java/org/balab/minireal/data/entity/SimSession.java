@@ -32,10 +32,16 @@ public class SimSession extends AbstractEntity
     private String db_name;
     private String file_path;
     private LocalDateTime created_at;
+    private LocalDateTime updated_at;
 
     @PrePersist
     public void prePersist() {
         this.created_at = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        this.updated_at = LocalDateTime.now();
     }
 
 

@@ -42,6 +42,7 @@ import org.balab.minireal.views.helpers.UIRelatedHelpers;
 import org.springframework.beans.factory.annotation.Value;
 import org.vaadin.addons.chartjs.ChartJs;
 import org.vaadin.addons.chartjs.config.LineChartConfig;
+import reactor.core.publisher.Flux;
 
 import java.io.File;
 import java.io.IOException;
@@ -61,6 +62,8 @@ public class RunView extends VerticalLayout
     private final SimulationService sim_service;
     private final SImRelatedHelpers sim_helper_service;
     private final KafkaTopicDeleter kafka_topic_deleter_service;
+    private final Flux<String> sim_session_del_subscriber;
+
 
 
     // define elements
@@ -96,7 +99,8 @@ public class RunView extends VerticalLayout
             SImRelatedHelpers sim_helper_service,
             SimSessionService sim_session_service,
             SimulationService sim_service,
-            KafkaTopicDeleter kafka_topic_deleter_service
+            KafkaTopicDeleter kafka_topic_deleter_service,
+            Flux<String> sim_session_del_subscriber
     ){
         // initialize services
         this.authed_user = authed_user;
@@ -107,6 +111,7 @@ public class RunView extends VerticalLayout
         this.sim_service = sim_service;
         this.sim_helper_service = sim_helper_service;
         this.kafka_topic_deleter_service = kafka_topic_deleter_service;
+        this.sim_session_del_subscriber = sim_session_del_subscriber;
 
         // setup layout
         setSizeFull();
@@ -133,7 +138,18 @@ public class RunView extends VerticalLayout
 
         // add title and main body components
         setupComponents();
+        System.out.println(sim_session.getToken());
 
+        // subscribe to sim-session delete channel
+        sim_session_del_subscriber.subscribe(del_sim_session_token -> {
+            if(sim_session.getToken().equals(del_sim_session_token)){
+                run_ui.access(() -> {
+                    Notification.show("Simulation run session token expired.").addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    UI.getCurrent().navigate(SamplesView.class);
+                });
+
+            }
+        });
 
     }
 
@@ -327,7 +343,7 @@ public class RunView extends VerticalLayout
 
                                 Notification.show("Simulation run successful").addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                                 // delete listener threads and kafka topics
-                                deleteThreadsTopics();
+                                sim_helper_service.deleteThreadsTopics(sim_session.getToken());
                             }
                         }));
                     } catch (IOException | InterruptedException e) {
@@ -337,7 +353,7 @@ public class RunView extends VerticalLayout
 
                             Notification.show("Simulation failed").addThemeVariants(NotificationVariant.LUMO_ERROR);
                             // delete listener threads and kafka topics
-                            deleteThreadsTopics();
+                            sim_helper_service.deleteThreadsTopics(sim_session.getToken());
                         }));
                         throw new RuntimeException(e);
                     }
@@ -353,22 +369,10 @@ public class RunView extends VerticalLayout
     protected void onDetach(DetachEvent detachEvent)
     {
         // delete listener threads and kafka topics
-        deleteThreadsTopics();
+        sim_helper_service.deleteThreadsTopics(sim_session.getToken());
 
         super.onDetach(detachEvent);
     }
 
-    private void deleteThreadsTopics(){
-        // delete kafka listener threads
-        Thread tick_thread_del = sim_helper_service.getThreadByName("tick" + sim_session.getToken());
-        sim_helper_service.interruptThread(tick_thread_del);
 
-        Thread chart_thread_del = sim_helper_service.getThreadByName("chart" + sim_session.getToken());
-        sim_helper_service.interruptThread(chart_thread_del);
-
-        // delete kafka topics
-        kafka_topic_deleter_service.deleteTopic("tick" + sim_session.getToken());
-        kafka_topic_deleter_service.deleteTopic("chart" + sim_session.getToken());
-        kafka_topic_deleter_service.deleteTopic("db" + sim_session.getToken());
-    }
 }

@@ -53,7 +53,6 @@ public class TickListener implements Runnable {
                     });
 //                    System.out.printf("offset = %d, key = %s, value = %s%n", record.offset(), record.key(), record.value());
                 }
-                System.out.println("Tick thread listening");
             }
         } catch (Exception e) {
             System.out.println(e.getMessage());

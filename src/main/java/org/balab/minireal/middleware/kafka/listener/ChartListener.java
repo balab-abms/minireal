@@ -110,7 +110,6 @@ public class ChartListener implements Runnable {
                 parent_ui.access(() -> {
                     chartJs.update();
                 });
-                System.out.println("Chart thread listening");
 
             }
         } catch (Exception e) {

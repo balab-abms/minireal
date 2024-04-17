@@ -13,13 +13,12 @@ repositories {
 dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
-    implementation files('libs/mason.20.jar')
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.13.1'
     implementation 'org.springframework.kafka:spring-kafka:2.8.0'
     compileOnly 'org.projectlombok:lombok:1.18.22'
-    implementation files('libs/simreal-annotation-processing-1.0-SNAPSHOT.jar')
-    annotationProcessor files('libs/simreal-annotation-processing-1.0-SNAPSHOT.jar')
+    implementation 'io.github.panderior:minireal-annotation:1.1.2'
     annotationProcessor 'org.projectlombok:lombok:1.18.22'
+    annotationProcessor 'io.github.panderior:minireal-annotation:1.1.2'
 }
 
 jar {

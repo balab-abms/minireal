@@ -76,7 +76,7 @@ public class UIRelatedHelpers
         String copy_temp_cmd = "cp -a " + templates_path + File.separator + ". " + model_file.getPath();
         Pair<Integer, String> copy_output = os_service.commandRunner(null, copy_temp_cmd, 0);
         System.out.println(copy_output.getB());
-        // write to seetings.gradle file
+        // write to settings.gradle file
         String stg_gdl_code = "rootProject.name = '" + sim_data.getModel_name() + "'";
         codeGen_service.createSourceFile(model_file, "settings.gradle", stg_gdl_code);
         // proceed, only if the copying of the template files is successful

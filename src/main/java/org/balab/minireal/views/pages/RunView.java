@@ -237,10 +237,6 @@ public class RunView extends VerticalLayout
         sim_settings_layout.setFlexGrow(1, tick_layout);
         sim_settings_layout.setAlignItems(Alignment.CENTER);
 
-//        config = ui_helper_service.getChartConfig("Chart");
-//        chartJs = new ChartJs(config);
-//        chartJs.setWidthFull();
-//        chartJs.setHeight("75%");
         soChart = new SOChart();
         soChart.setSize("100%", "90%");
         sochart_datachannels_list = new HashMap<>();
@@ -288,12 +284,6 @@ public class RunView extends VerticalLayout
             // update model name on UI
             model_name_label.setText(model_name);
 
-//            // reset the chart
-//            if (config.data().getDatasets() != null) {
-//                config.data().getDatasets().clear();
-//                config.data().getLabels().clear();
-//            }
-
             // clear existing data and chart
             soChart.removeAll();
             sochart_datachannels_list.clear();
@@ -334,12 +324,6 @@ public class RunView extends VerticalLayout
     public void setStartButtonListener() {
         try {
             if (!model_uploaded_path.isEmpty()) {
-                // reset the chart
-//                if (config.data().getDatasets() != null) {
-//                    config.data().getDatasets().clear();
-//                    config.data().getLabels().clear();
-//                }
-
                 // clear existing data and chart
                 soChart.removeAll();
                 sochart_datachannels_list.clear();
@@ -348,19 +332,21 @@ public class RunView extends VerticalLayout
                         .getAsJsonObject().get("chartDTOList").getAsJsonArray();
                 // create the coordinate system to draw on
                 XAxis xAxis = new XAxis(DataType.NUMBER);
-                xAxis.setMinAsMinData();
-                xAxis.setMaxAsMaxData();
+//                xAxis.setMinAsMinData();
+//                xAxis.setMaxAsMaxData();
                 xAxis.setName("Ticks");
                 YAxis yAxis = new YAxis(DataType.NUMBER);
                 yAxis.setMinAsMinData();
                 yAxis.setMaxAsMaxData();
                 RectangularCoordinate rc = new RectangularCoordinate(xAxis, yAxis);
+                DataZoom rc_zoom = new DataZoom(rc, yAxis);
                 // add the line charts to the main chart
                 for(JsonElement chart_elt: model_charts){
                     String temp_chart_name = chart_elt.getAsJsonObject().get("chartName").getAsString();
                     Pair<Data, DataChannel> temp_data_channel = ui_helper_service.SoLineChartConfig(temp_chart_name, soChart, rc);
                     sochart_datachannels_list.put(temp_chart_name, temp_data_channel);
                 }
+                soChart.add(rc_zoom);
                 soChart.update();
 
                 // get param values and database checkbox value
@@ -372,13 +358,6 @@ public class RunView extends VerticalLayout
                 tick_thread.start();
 
                 // start the chart listener
-//                ChartListener chart_listener = new ChartListener(
-//                        ui_helper_service,
-//                        kafka_broker,
-//                        this.sim_session.getToken(),
-//                        this.run_ui,
-//                        chartJs
-//                );
                 ChartListener chart_listener = new ChartListener(
                         ui_helper_service,
                         kafka_broker,

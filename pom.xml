@@ -183,6 +183,12 @@
             <version>2.15.1</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.storedobject.chart</groupId>
+            <artifactId>so-charts</artifactId>
+            <version>3.2.6</version>
+        </dependency>
+
         <!-- add MiniReal annotation library dependency -->
         <dependency>
             <groupId>io.github.panderior</groupId>

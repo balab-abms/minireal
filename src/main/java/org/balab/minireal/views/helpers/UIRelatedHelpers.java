@@ -1,6 +1,7 @@
 package org.balab.minireal.views.helpers;
 
 import com.squareup.javapoet.JavaFile;
+import com.storedobject.chart.*;
 import com.vaadin.flow.server.StreamResource;
 import org.balab.minireal.data.entity.SimForm;
 import org.balab.minireal.data.service.CodeGenerationService;
@@ -59,6 +60,26 @@ public class UIRelatedHelpers
                 .done();
 
         return  config;
+    }
+
+    // a helper method to set up a SoChart LineChart instance
+    public Pair<Data, DataChannel> SoLineChartConfig(String chart_name, SOChart soChart, RectangularCoordinate rc){
+        Data xValues = new Data(), yValues = new Data();
+
+        LineChart lineChart = new LineChart(xValues, yValues);
+        lineChart.setName(chart_name);
+        PointSymbol ps = lineChart.getPointSymbol(true);
+        ps.setType(PointSymbolType.NONE);
+        lineChart.setSmoothness(true);
+
+        lineChart.plotOn(rc);
+
+        soChart.add(lineChart);
+
+        // Create a data channel to push the data
+        DataChannel dataChannel = new DataChannel(soChart, xValues, yValues);
+
+        return new Pair<>(yValues, dataChannel) ;
     }
 
     public File generateModelJar(SimForm sim_data, File model_file) throws FileNotFoundException, IOException, Exception

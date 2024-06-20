@@ -1,6 +1,10 @@
 package org.balab.minireal.views.pages;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.storedobject.chart.*;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
@@ -42,11 +46,13 @@ import org.balab.minireal.views.helpers.UIRelatedHelpers;
 import org.springframework.beans.factory.annotation.Value;
 import org.vaadin.addons.chartjs.ChartJs;
 import org.vaadin.addons.chartjs.config.LineChartConfig;
+import oshi.util.tuples.Pair;
 import reactor.core.publisher.Flux;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
 
 @Route(value = "run", layout = MainLayout.class)
 @PermitAll
@@ -70,8 +76,10 @@ public class RunView extends VerticalLayout
     FlexLayout child_main_layout;
     VerticalLayout model_params_layout;
     VerticalLayout model_chart_settings_layout;
-    private LineChartConfig config;
-    private ChartJs chartJs;
+//    private LineChartConfig config;
+//    private ChartJs chartJs;
+    private SOChart soChart;
+    private HashMap<String, Pair<Data, DataChannel>> sochart_datachannels_list;
     Upload model_upload;
     H5 model_name_label, tick_label;
     TextField tick_tf;
@@ -229,13 +237,15 @@ public class RunView extends VerticalLayout
         sim_settings_layout.setFlexGrow(1, tick_layout);
         sim_settings_layout.setAlignItems(Alignment.CENTER);
 
-        config = ui_helper_service.getChartConfig("Chart");
-        chartJs = new ChartJs(config);
-        chartJs.setWidthFull();
-        chartJs.setHeight("75%");
+//        config = ui_helper_service.getChartConfig("Chart");
+//        chartJs = new ChartJs(config);
+//        chartJs.setWidthFull();
+//        chartJs.setHeight("75%");
+        soChart = new SOChart();
+        soChart.setSize("100%", "90%");
+        sochart_datachannels_list = new HashMap<>();
 
-
-        model_chart_settings_layout = new VerticalLayout(sim_settings_layout, chartJs);
+        model_chart_settings_layout = new VerticalLayout(sim_settings_layout, soChart);
         model_chart_settings_layout.setWidth("70%");
         model_chart_settings_layout.setHeightFull();
 
@@ -278,13 +288,37 @@ public class RunView extends VerticalLayout
             // update model name on UI
             model_name_label.setText(model_name);
 
-            // reset the chart
-            if (config.data().getDatasets() != null) {
-                config.data().getDatasets().clear();
-                config.data().getLabels().clear();
-            }
+//            // reset the chart
+//            if (config.data().getDatasets() != null) {
+//                config.data().getDatasets().clear();
+//                config.data().getLabels().clear();
+//            }
 
-        } catch (IOException e){
+            // clear existing data and chart
+            soChart.removeAll();
+            sochart_datachannels_list.clear();
+
+            JsonArray model_charts = JsonParser.parseString(model_metaData)
+                    .getAsJsonObject().get("chartDTOList").getAsJsonArray();
+            // create the coordinate system to draw on
+            XAxis xAxis = new XAxis(DataType.NUMBER);
+            xAxis.setMinAsMinData();
+            xAxis.setMaxAsMaxData();
+            xAxis.setName("Ticks");
+            YAxis yAxis = new YAxis(DataType.NUMBER);
+            yAxis.setMinAsMinData();
+            yAxis.setMaxAsMaxData();
+            RectangularCoordinate rc = new RectangularCoordinate(xAxis, yAxis);
+            // add the line charts to the main chart
+            for(JsonElement chart_elt: model_charts){
+                String temp_chart_name = chart_elt.getAsJsonObject().get("chartName").getAsString();
+                Pair<Data, DataChannel> temp_data_channel = ui_helper_service.SoLineChartConfig(temp_chart_name, soChart, rc);
+                sochart_datachannels_list.put(temp_chart_name, temp_data_channel);
+            }
+            soChart.update();
+        } catch (IOException|ChartException e){
+            throw new RuntimeException(e);
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
@@ -301,10 +335,33 @@ public class RunView extends VerticalLayout
         try {
             if (!model_uploaded_path.isEmpty()) {
                 // reset the chart
-                if (config.data().getDatasets() != null) {
-                    config.data().getDatasets().clear();
-                    config.data().getLabels().clear();
+//                if (config.data().getDatasets() != null) {
+//                    config.data().getDatasets().clear();
+//                    config.data().getLabels().clear();
+//                }
+
+                // clear existing data and chart
+                soChart.removeAll();
+                sochart_datachannels_list.clear();
+
+                JsonArray model_charts = JsonParser.parseString(model_metaData)
+                        .getAsJsonObject().get("chartDTOList").getAsJsonArray();
+                // create the coordinate system to draw on
+                XAxis xAxis = new XAxis(DataType.NUMBER);
+                xAxis.setMinAsMinData();
+                xAxis.setMaxAsMaxData();
+                xAxis.setName("Ticks");
+                YAxis yAxis = new YAxis(DataType.NUMBER);
+                yAxis.setMinAsMinData();
+                yAxis.setMaxAsMaxData();
+                RectangularCoordinate rc = new RectangularCoordinate(xAxis, yAxis);
+                // add the line charts to the main chart
+                for(JsonElement chart_elt: model_charts){
+                    String temp_chart_name = chart_elt.getAsJsonObject().get("chartName").getAsString();
+                    Pair<Data, DataChannel> temp_data_channel = ui_helper_service.SoLineChartConfig(temp_chart_name, soChart, rc);
+                    sochart_datachannels_list.put(temp_chart_name, temp_data_channel);
                 }
+                soChart.update();
 
                 // get param values and database checkbox value
                 String param_json = param_view.getParamsValue();
@@ -315,12 +372,19 @@ public class RunView extends VerticalLayout
                 tick_thread.start();
 
                 // start the chart listener
+//                ChartListener chart_listener = new ChartListener(
+//                        ui_helper_service,
+//                        kafka_broker,
+//                        this.sim_session.getToken(),
+//                        this.run_ui,
+//                        chartJs
+//                );
                 ChartListener chart_listener = new ChartListener(
                         ui_helper_service,
                         kafka_broker,
                         this.sim_session.getToken(),
                         this.run_ui,
-                        chartJs
+                        sochart_datachannels_list
                 );
                 Thread chart_thread = new Thread(chart_listener, "chart" + sim_session.getToken());
                 chart_thread.start();

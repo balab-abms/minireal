@@ -66,7 +66,6 @@ public class ChartListener implements Runnable {
                     DataChannel data_channel = temp_data_channel.getB();
                     y_data.add((Number) chart_data);
                     data_channel.append(y_data.size(), (Number) chart_data);
-                    System.out.println("Added data to chart");
                 }
 
             }

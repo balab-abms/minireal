@@ -79,7 +79,7 @@ public class RunView extends VerticalLayout
 //    private LineChartConfig config;
 //    private ChartJs chartJs;
     private SOChart soChart;
-    private HashMap<String, Pair<Data, DataChannel>> sochart_datachannels_list;
+    private HashMap<String, Pair<Data, Data>> sochart_datachannels_list;
     Upload model_upload;
     H5 model_name_label, tick_label;
     TextField tick_tf;
@@ -302,8 +302,8 @@ public class RunView extends VerticalLayout
             // add the line charts to the main chart
             for(JsonElement chart_elt: model_charts){
                 String temp_chart_name = chart_elt.getAsJsonObject().get("chartName").getAsString();
-                Pair<Data, DataChannel> temp_data_channel = ui_helper_service.SoLineChartConfig(temp_chart_name, soChart, rc);
-                sochart_datachannels_list.put(temp_chart_name, temp_data_channel);
+                Pair<Data, Data> temp_datas = ui_helper_service.SoLineChartConfig(temp_chart_name, soChart, rc);
+                sochart_datachannels_list.put(temp_chart_name, temp_datas);
             }
             soChart.update();
         } catch (IOException|ChartException e){
@@ -343,7 +343,7 @@ public class RunView extends VerticalLayout
                 // add the line charts to the main chart
                 for(JsonElement chart_elt: model_charts){
                     String temp_chart_name = chart_elt.getAsJsonObject().get("chartName").getAsString();
-                    Pair<Data, DataChannel> temp_data_channel = ui_helper_service.SoLineChartConfig(temp_chart_name, soChart, rc);
+                    Pair<Data, Data> temp_data_channel = ui_helper_service.SoLineChartConfig(temp_chart_name, soChart, rc);
                     sochart_datachannels_list.put(temp_chart_name, temp_data_channel);
                 }
                 soChart.add(rc_zoom);
@@ -363,6 +363,7 @@ public class RunView extends VerticalLayout
                         kafka_broker,
                         this.sim_session.getToken(),
                         this.run_ui,
+                        soChart,
                         sochart_datachannels_list
                 );
                 Thread chart_thread = new Thread(chart_listener, "chart" + sim_session.getToken());
@@ -383,6 +384,13 @@ public class RunView extends VerticalLayout
                             if (is_sim_run) {
                                 sim_session.set_completed(true);
                                 sim_session = sim_session_service.updateSimSession(sim_session);
+                                try {
+                                    for(Pair<Data, Data> temp_chart_datas: sochart_datachannels_list.values()){
+                                        soChart.updateData(temp_chart_datas.getA(), temp_chart_datas.getB());
+                                    }
+                                } catch (Exception e) {
+                                    throw new RuntimeException(e);
+                                }
 
                                 Notification.show("Simulation run successful").addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                                 // delete listener threads and kafka topics
@@ -393,6 +401,14 @@ public class RunView extends VerticalLayout
                         getUI().ifPresent(ui -> ui.access(() -> {
                             sim_session.set_failed(true);
                             sim_session = sim_session_service.updateSimSession(sim_session);
+
+                            try {
+                                for(Pair<Data, Data> temp_chart_datas: sochart_datachannels_list.values()){
+                                    soChart.updateData(temp_chart_datas.getA(), temp_chart_datas.getB());
+                                }
+                            } catch (Exception exp) {
+                                throw new RuntimeException(exp);
+                            }
 
                             Notification.show("Simulation failed").addThemeVariants(NotificationVariant.LUMO_ERROR);
                             // delete listener threads and kafka topics

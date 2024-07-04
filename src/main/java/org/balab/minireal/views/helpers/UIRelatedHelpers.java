@@ -63,7 +63,7 @@ public class UIRelatedHelpers
     }
 
     // a helper method to set up a SoChart LineChart instance
-    public Pair<Data, DataChannel> SoLineChartConfig(String chart_name, SOChart soChart, RectangularCoordinate rc){
+    public Pair<Data, Data> SoLineChartConfig(String chart_name, SOChart soChart, RectangularCoordinate rc){
         Data xValues = new Data(), yValues = new Data();
 
         LineChart lineChart = new LineChart(xValues, yValues);
@@ -71,15 +71,16 @@ public class UIRelatedHelpers
         PointSymbol ps = lineChart.getPointSymbol(true);
         ps.setType(PointSymbolType.NONE);
         lineChart.setSmoothness(true);
+        lineChart.setAnimation(null);
 
         lineChart.plotOn(rc);
 
         soChart.add(lineChart);
 
         // Create a data channel to push the data
-        DataChannel dataChannel = new DataChannel(soChart, xValues, yValues);
+//        DataChannel dataChannel = new DataChannel(soChart, xValues, yValues);
 
-        return new Pair<>(yValues, dataChannel) ;
+        return new Pair<>(xValues, yValues) ;
     }
 
     public File generateModelJar(SimForm sim_data, File model_file) throws FileNotFoundException, IOException, Exception

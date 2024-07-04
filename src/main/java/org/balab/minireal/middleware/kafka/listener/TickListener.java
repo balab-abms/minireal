@@ -6,6 +6,7 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.common.errors.InterruptException;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import reactor.core.publisher.Sinks;
@@ -32,7 +33,7 @@ public class TickListener implements Runnable {
         props.put(ConsumerConfig.GROUP_ID_CONFIG, "tick" + sim_session_token);
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class.getName());
-        props.put("group.instance.id", "tick" + sim_session_token);
+//        props.put("group.instance.id", "tick" + sim_session_token);
         this.consumer = new KafkaConsumer<>(props);
         this.sim_session_token = sim_session_token;
         this.parent_ui = parent_ui;
@@ -51,23 +52,31 @@ public class TickListener implements Runnable {
                         String tick_value = String.valueOf(record.value());
                         tick_tf.setValue(tick_value);
                     });
-//                    System.out.printf("offset = %d, key = %s, value = %s%n", record.offset(), record.key(), record.value());
                 }
             }
+        } catch (InterruptException e) {
+            System.out.println("Thread was interrupted, closing consumer.");
+            Thread.currentThread().interrupt(); // Preserve the interrupt
         } catch (Exception e) {
             System.out.println(e.getMessage());
-//            Thread.currentThread().interrupt(); // Preserve the interrupt
-            System.out.println("Thread was interrupted, closing consumer.");
-        }
-        finally {
+        } finally {
             running = false;
-            consumer.unsubscribe();
+            closeConsumer();
             System.out.println("Resource Cleaned");
         }
     }
 
-    public void shutdown() {
+    public void stop() {
         running = false;
-        consumer.unsubscribe();
+        closeConsumer();
+    }
+
+    private void closeConsumer() {
+        try {
+            consumer.unsubscribe();
+            consumer.close();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
     }
 }

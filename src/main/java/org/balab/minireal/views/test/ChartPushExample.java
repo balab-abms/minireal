@@ -27,12 +27,14 @@ public class ChartPushExample extends VerticalLayout{
     private final DataChannel dataChannel;
     private final UI a;
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    SOChart soChart = new SOChart();
 
     public ChartPushExample() {
         setSizeFull();
 
         // Creating a chart display area
-        SOChart soChart = new SOChart();
+
+
         soChart.setSize("100%", "500px");
 
         // Axes
@@ -50,6 +52,7 @@ public class ChartPushExample extends VerticalLayout{
         LineChart lc = new LineChart(seconds, random);
         lc.plotOn(new RectangularCoordinate(xAxis, yAxis));
         lc.setSmoothness(true);
+        lc.setAnimation(null);
         PointSymbol ps = lc.getPointSymbol(true);
         ps.setType(PointSymbolType.NONE);
 
@@ -61,48 +64,64 @@ public class ChartPushExample extends VerticalLayout{
         add(soChart);
 
         // Create a data channel to push the data
-//        dataChannel = new DataChannel(soChart, seconds, random);
-        dataChannel = new DataChannel(soChart, random);
+        dataChannel = new DataChannel(soChart, seconds, random);
+//        dataChannel = new DataChannel(soChart, random);
         
 
         // A reference yo the Application is required for updating UI in the background
         a = UI.getCurrent();
 
         // Schedule the 'data' method to be called every 2 seconds
-        scheduler.scheduleAtFixedRate(this::data, 0, 250, TimeUnit.MILLISECONDS);
+        scheduler.scheduleAtFixedRate(this::data, 0, 1000, TimeUnit.MILLISECONDS);
     }
 
 
     private void data() {
         // Generate a new data point
 
-        seconds.add(seconds.size());
-        random.add(randomGen.nextInt(1000));
-        int lastIndex = seconds.size() - 1;
+        try
+        {
+            for(int i=0; i<100; i++){
+                seconds.add(seconds.size());
+                random.add(randomGen.nextInt(1000));
+                int lastIndex = seconds.size() - 1;
+                System.out.println(lastIndex + "-" + seconds.get(lastIndex));
 
-        a.access(
-                () -> { // Required to lock the UI
+            }
+            soChart.updateData(seconds, random);
+//                        dataChannel.append(seconds.get(lastIndex), random.get(lastIndex));
 
-                    try
-                    {
-//                        System.out.println(lastIndex + "-" + seconds.get(lastIndex));
-                        dataChannel.append(seconds.get(lastIndex), random.get(lastIndex));
-                    } catch (ChartException e)
-                    {
-                        throw new RuntimeException(e);
-                    }
-//                    try {
-//                        if (lastIndex < 60) {
-//                            // Append data if data size is less than 60
-//                            dataChannel.append(seconds.get(lastIndex), random.get(lastIndex));
-//                        } else {
-//                            // Push data if data size is more than 60 (tail-end will be trimmed)
-//                            dataChannel.push(seconds.get(lastIndex), random.get(lastIndex));
+//                        for(int i=0; i<200; i++){
+//
 //                        }
-//                    } catch (Exception e) {
-//                        System.out.println(e);
-//                    }
-                });
+
+        } catch (ChartException e)
+        {
+            throw new RuntimeException(e);
+        } catch (Exception e)
+        {
+            throw new RuntimeException(e);
+        }
+
+
+
+
+//        a.access(
+//                () -> { // Required to lock the UI
+//
+//
+////                    try {
+////                        if (lastIndex < 60) {
+////                            // Append data if data size is less than 60
+////                            dataChannel.append(seconds.get(lastIndex), random.get(lastIndex));
+////                        } else {
+////                            // Push data if data size is more than 60 (tail-end will be trimmed)
+////                            dataChannel.push(seconds.get(lastIndex), random.get(lastIndex));
+////                        }
+////                    } catch (Exception e) {
+////                        System.out.println(e);
+////                    }
+//                });
     }
 
 

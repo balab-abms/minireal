@@ -3,47 +3,37 @@ plugins {
     id 'eclipse'
     id 'idea'
 }
-
 group 'org.example'
-
 repositories {
     mavenCentral()
 }
 
+configurations.all {
+    resolutionStrategy.cacheDynamicVersionsFor 5, 'minutes'
+}
 dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.13.1'
     implementation 'org.springframework.kafka:spring-kafka:2.8.0'
     compileOnly 'org.projectlombok:lombok:1.18.22'
-    implementation 'io.github.panderior:minireal-annotation:1.1.2'
+    implementation "io.github.panderior:minireal-annotation:latest.release"
     annotationProcessor 'org.projectlombok:lombok:1.18.22'
-    annotationProcessor 'io.github.panderior:minireal-annotation:1.1.2'
+    annotationProcessor "io.github.panderior:minireal-annotation:latest.release"
 }
-
 jar {
     manifest{
         attributes 'Main-Class': 'com.example.abm.SimulationLauncher'
     }
-
     from {
         configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
-
 tasks.withType(JavaCompile){
     options.encoding = "UTF-8"
-
 }
-
 java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
-    }
+    toolchain {        languageVersion = JavaLanguageVersion.of(17)         }
 }
-
-
-test {
-    useJUnitPlatform()
-}
+test {  useJUnitPlatform()  }

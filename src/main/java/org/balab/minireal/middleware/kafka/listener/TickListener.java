@@ -33,7 +33,6 @@ public class TickListener implements Runnable {
         props.put(ConsumerConfig.GROUP_ID_CONFIG, "tick" + sim_session_token);
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class.getName());
-//        props.put("group.instance.id", "tick" + sim_session_token);
         this.consumer = new KafkaConsumer<>(props);
         this.sim_session_token = sim_session_token;
         this.parent_ui = parent_ui;

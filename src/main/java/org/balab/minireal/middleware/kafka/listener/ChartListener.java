@@ -11,6 +11,8 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.errors.InterruptException;
+import org.apache.kafka.common.header.Header;
+import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.balab.minireal.views.helpers.UIRelatedHelpers;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
@@ -20,6 +22,7 @@ import org.vaadin.addons.chartjs.data.Dataset;
 import org.vaadin.addons.chartjs.data.LineDataset;
 import oshi.util.tuples.Pair;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.*;
 
@@ -45,7 +48,6 @@ public class ChartListener implements Runnable {
         props.put(ConsumerConfig.GROUP_ID_CONFIG, "chart" + sim_session_token);
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class.getName());
-//        props.put("group.instance.id", "chart" + sim_session_token);
         this.consumer = new KafkaConsumer<>(props);
         this.ui_helper_service = ui_helper_service;
         this.sim_session_token = sim_session_token;
@@ -67,6 +69,15 @@ public class ChartListener implements Runnable {
                     // get the data
                     Object chart_data = record.value();
                     String chart_name = record.key().toString();
+                    Number temp_tick_val = null;
+
+                    // get the headers
+                    Headers headers = record.headers();
+                    Header tickHeader = headers.lastHeader("tick");
+                    if (tickHeader != null) {
+                        byte[] tickHeaderValue = tickHeader.value();
+                        temp_tick_val = Long.parseLong(new String(tickHeaderValue, StandardCharsets.UTF_8));
+                    }
 
                     Pair<Data, Data> temp_data_channel = chart_datachannel_list.get(chart_name);
                     if (temp_data_channel != null) {
@@ -74,7 +85,9 @@ public class ChartListener implements Runnable {
                         Data y_data = temp_data_channel.getB();
                         if (y_data != null && x_data != null) {
                             y_data.add((Number) chart_data);
-                            x_data.add(y_data.size());
+                            // if tick header is null ... then set the x-axis value to the size of y data
+                            temp_tick_val = temp_tick_val != null  ? temp_tick_val : y_data.size();
+                            x_data.add(temp_tick_val);
                             total_data_size++;
                         }
                     }

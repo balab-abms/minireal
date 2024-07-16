@@ -61,19 +61,19 @@ public class CodeGenerationService {
                 .build();
 
         // define list of agent class (object) type for db persisting method
-        ClassName agent_class = ClassName.get(model_pkg_name, agent_name);
-        ClassName arrayList_class = ClassName.get("java.util", "ArrayList");
-        TypeName listof_agents_class = ParameterizedTypeName.get(arrayList_class, agent_class);
-
-        MethodSpec db_visual_method = MethodSpec.methodBuilder("persistVisualizeAgents")
-                .addModifiers(Modifier.PUBLIC)
-                .returns(listof_agents_class)
-                .addAnnotation(AnnotationSpec.builder(SimDB.class)
-                        .addMember("name", "\"$L_db\"", agent_name)
-                        .build())
-                .addComment("return list of agents whose data will be persisted and visualized")
-                .addStatement("return null")
-                .build();
+//        ClassName agent_class = ClassName.get(model_pkg_name, agent_name);
+//        ClassName arrayList_class = ClassName.get("java.util", "ArrayList");
+//        TypeName listof_agents_class = ParameterizedTypeName.get(arrayList_class, agent_class);
+//
+//        MethodSpec db_visual_method = MethodSpec.methodBuilder("persistVisualizeAgents")
+//                .addModifiers(Modifier.PUBLIC)
+//                .returns(listof_agents_class)
+//                .addAnnotation(AnnotationSpec.builder(SimDB.class)
+//                        .addMember("name", "\"$L_db\"", agent_name)
+//                        .build())
+//                .addComment("return list of agents whose data will be persisted and visualized")
+//                .addStatement("return null")
+//                .build();
 
         // generate constructor
         ParameterSpec popln_param = ParameterSpec.builder(int.class, "population")
@@ -124,7 +124,7 @@ public class CodeGenerationService {
                 .addMethod(model_constructor)
                 .addMethod(create_agents_method)
                 .addMethod(draw_chart_method)
-                .addMethod(db_visual_method)
+//                .addMethod(db_visual_method)
                 .addMethod(main_method)
                 .build();
 
@@ -149,32 +149,32 @@ public class CodeGenerationService {
                 .addModifiers(Modifier.PUBLIC)
                 .build();
 
-        FieldSpec id_field = FieldSpec.builder(String.class, "agent_id")
-                .addModifiers(Modifier.PUBLIC)
-                .addAnnotation(SimField.class)
-                .build();
+//        FieldSpec id_field = FieldSpec.builder(String.class, "agent_id")
+//                .addModifiers(Modifier.PUBLIC)
+//                .addAnnotation(SimField.class)
+//                .build();
 
-        FieldSpec step_field = FieldSpec.builder(Long.class, "step")
-                .addModifiers(Modifier.PUBLIC)
-                .addAnnotation(SimField.class)
-                .build();
+//        FieldSpec step_field = FieldSpec.builder(Long.class, "step")
+//                .addModifiers(Modifier.PUBLIC)
+//                .addAnnotation(SimField.class)
+//                .build();
 
         // define constructor
-        String id_stmt = "this.agent_id = String.valueOf($L.random.nextInt($L.getPopulation()))";
+//        String id_stmt = "this.agent_id = String.valueOf($L.random.nextInt($L.getPopulation()))";
         MethodSpec agent_constructor = MethodSpec.constructorBuilder()
                 .addModifiers(Modifier.PUBLIC)
                 .addParameter(model_class, model_var_name)
                 .addStatement("this.$L = $L", model_var_name, model_var_name)
-                .addStatement(id_stmt, model_var_name, model_var_name)
-                .addStatement("this.$N = $L.schedule.getSteps()", step_field, model_var_name)
+//                .addStatement(id_stmt, model_var_name, model_var_name)
+//                .addStatement("this.$N = $L.schedule.getSteps()", step_field, model_var_name)
                 .build();
 
         MethodSpec step_method = MethodSpec.methodBuilder("step")
                 .addModifiers(Modifier.PUBLIC)
                 .returns(void.class)
                 .addParameter(SimState.class, "sim_state")
-                .addComment("update step field")
-                .addStatement("this.$N = $L.schedule.getSteps()", step_field, model_var_name)
+//                .addComment("update step field")
+//                .addStatement("this.$N = $L.schedule.getSteps()", step_field, model_var_name)
                 .addComment("perform agent actions here")
                 .build();
 
@@ -187,8 +187,8 @@ public class CodeGenerationService {
                 .addAnnotation(Setter.class)
                 .addField(serial_id_field)
                 .addField(model_field)
-                .addField(id_field)
-                .addField(step_field)
+//                .addField(id_field)
+//                .addField(step_field)
                 .addMethod(agent_constructor)
                 .addMethod(step_method)
                 .build();

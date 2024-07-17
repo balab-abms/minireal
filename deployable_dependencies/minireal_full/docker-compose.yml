@@ -1,0 +1,14 @@
+version: '3.5'
+services:
+  minireal:
+    container_name: minireal
+    image: minireal-full:1.5
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - 8090:8090
+    volumes:
+      - ./data:/usr/src/app/data
+      - ./simreal_data:/usr/src/app/simreal_data
+

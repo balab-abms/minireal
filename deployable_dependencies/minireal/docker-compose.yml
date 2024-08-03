@@ -1,8 +1,8 @@
-version: '3.5'
+version: '3.8'
 services:
   minireal:
     container_name: minireal
-    image: minireal-full:1.5
+    image: pazed/minireal:latest
     restart: unless-stopped
     env_file:
       - .env

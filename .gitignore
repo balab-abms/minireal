@@ -4,8 +4,9 @@
 .settings
 .project
 .classpath
-/data/
+*data/
 .env
+.env*
 *.iml
 .DS_Store
 

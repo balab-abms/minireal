@@ -50,5 +50,7 @@ public class javadoc_format {
      * @see
      * @since 1.0
      */
-    public Boolean example_method(int param_a) {}
+    public Boolean example_method(int param_a) {
+        return false;
+    }
 }

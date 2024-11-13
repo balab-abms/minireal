@@ -5,8 +5,8 @@
 .project
 .classpath
 *data/
-.env
-.env*
+#.env
+#.env*
 *.iml
 .DS_Store
 

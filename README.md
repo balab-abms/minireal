@@ -1,11 +1,12 @@
 ![Header](./simreal_data/assets/simreal-header-image-4.png)
-# WebService of Simulator for Agent-based Modeling (WSim4ABM or SimReal)
-> This is a WebService implementation for an Agent-based Modeling Simulator, shortly called WSim4ABM or SimReal.
+# WebService of Simulator for Agent-based Modeling
+## (WSim4ABM or MiniReal)
+> This is a WebService implementation for an Agent-based Modeling Simulator, shortly called WSim4ABM or MiniReal.
 > This opensource project houses remote access to High Performance Computing (HPC) resources through 
 > browser based visualization for ABM simulations along with other services.
 
 ## Introduction
-**WSim4ABM** (SimReal) is a web-based simulation platform for Agent-Based Modeling (ABM), built on top of the **MASON** simulation 
+**WSim4ABM** (MiniReal) is a web-based simulation platform for Agent-Based Modeling (ABM), built on top of the **MASON** simulation 
 library for its extensibility, flexibility, and compatibility with Java ecosystems. The platform enables users to 
 create, configure, and run ABM simulations seamlessly, both locally and on remote HPC resources. Key features include:
 
@@ -26,59 +27,45 @@ accessibility and scalability for researchers and developers.
 ![Simreal Simulation Page](./simreal_data/assets/simreal_run_page.png)
 
 ## Requirements  (Prerequisites)
-The requirements to deploying and utilizing the SimReal system and workflow are:
+The requirements to deploying and utilizing the MiniReal system and workflow are:
 
 - [Docker]()
 - [Java]()
 - Integrated Development Environment (IDE), preferably [Intellij]() for the system was heavily tested on it
 - Web Browser
 
-## Documentation
-
-## Deployment of WSim4ABM
-
-## Project structure
-- `MainLayout.java` in `src/main/java` contains the navigation setup (i.e., the
-  side/top bar and the main menu). This setup uses
-  [App Layout](https://vaadin.com/docs/components/app-layout).
-- `views` package in `src/main/java` contains the server-side Java views of your application.
-- `views` folder in `frontend/` contains the client-side JavaScript views of your application.
-- `themes` folder in `frontend/` contains the custom CSS styles.
-
 ## Tech Stack / Built With
 The technology / frameworks / tools used in this project are:
-1. [Vaadin](https://vaadin.com/) - 
+1. [Vaadin](https://vaadin.com/) -
 2. [Spring Boot](https://spring.io/projects/spring-boot) -
 3. [PostGREs](https://hub.docker.com/_/postgres) -
 4. [Apache Kafka](https://hub.docker.com/r/confluentinc/cp-kafka) -
 5. [MASON](https://cs.gmu.edu/~eclab/projects/mason/) -
 6. [MiniReal Annotation Library](https://central.sonatype.com/artifact/io.github.panderior/minireal-annotation) -
-7. [Gradle](https://gradle.org/) - 
+7. [Gradle](https://gradle.org/) -
 8. [Maven](https://maven.apache.org/) -
 
+## Documentation
+The full documentation for this project can be found on the following site.
+* https://minireal-doc.pazd.org
+
+## Deployment of WSim4ABM
+
+
 ## How to Contribute
-<!-- Mention how anyone can contribute to make this project more productive or fix bugs in it.  
+Contributions are welcome. For significant modifications, please initiate a discussion by opening an issue first.
+Ensure that tests are updated as necessary. To contribute, please fork the repository and make your changes accordingly.
+Pull requests are warmly welcomed.
 
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change. 
-Please make sure to update tests as appropriate. If you'd like to contribute, please fork the repository and make changes as you'd like. 
-Pull requests are warmly welcome.
+**Steps to Contribute:**
+1. Fork this repository.
+2. Create a feature branch (`git checkout -b feature/fooBar`).
+3. Commit your changes (`git commit -am 'Add some fooBar'`).
+4. Push to the branch (`git push origin feature/fooBar`).
+5. Submit a new Pull Request.
 
-Steps to contribute:
-1. Fork this repository (link to your repository)
-2. Create your feature branch (git checkout -b feature/fooBar)
-3. Commit your changes (git commit -am 'Add some fooBar')
-4. Push to the branch (git push origin feature/fooBar)
-5. Create a new Pull Request
-
-Additionally you can create another document called CONTRIBUTING.md which gives instructions about how to contribute. 
-
-Please read CONTRIBUTING.md for details on our code of conduct, and the process for submitting pull requests to us. -->
-
-
+Refer to CONTRIBUTING.md for details on our code of conduct and the submission process for pull requests.
 
 ## License
-<!-- A short snippet describing the license (MIT, Apache etc).
-
-This project is licensed under the MIT License - see the LICENSE.md file for details
-
-MIT © Yourname -->
+This opensource project is licensed under Apache 2.0 license. For more details please refer to the [LICENSE](./LICENSE.md)
+file.

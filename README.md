@@ -1,4 +1,4 @@
-![Header](./simreal_data/assets/simreal-header-image-4.png)
+![Header](./simreal_data/assets/minireal-header-img.png)
 # WebService of Simulator for Agent-based Modeling
 ## (WSim4ABM or MiniReal)
 > This is a WebService implementation for an Agent-based Modeling Simulator, shortly called WSim4ABM or MiniReal.

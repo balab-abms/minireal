@@ -8,7 +8,6 @@ import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.charts.model.Label;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.contextmenu.SubMenu;
 import com.vaadin.flow.component.html.*;
@@ -20,11 +19,10 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.router.BeforeEnterEvent;
-import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import org.balab.minireal.data.entity.Role;
 import org.balab.minireal.data.entity.User;
+import org.balab.minireal.data.service.MinirealConfigGetter;
 import org.balab.minireal.data.service.FileSystemService;
 import org.balab.minireal.security.AuthenticatedUser;
 import org.balab.minireal.views.components.AvatarUpdateToken;
@@ -36,17 +34,21 @@ public class MainLayout extends AppLayout
     // define services
     private final FileSystemService fileSystem_service;
     private final AuthenticatedUser authenticatedUser;
+    private final MinirealConfigGetter minirealConfigGetter;
 
 
     // define layouts and components
     FlexLayout child_content;
     VerticalLayout footer;
+
     public MainLayout(
             FileSystemService fileSystem_service,
-            AuthenticatedUser authenticatedUser
+            AuthenticatedUser authenticatedUser,
+            MinirealConfigGetter minirealConfigGetter
     ) {
         this.fileSystem_service = fileSystem_service;
         this.authenticatedUser = authenticatedUser;
+        this.minirealConfigGetter = minirealConfigGetter;
 
         // setup layouts
         child_content = new FlexLayout();
@@ -78,8 +80,8 @@ public class MainLayout extends AppLayout
         header_layout.getStyle().set("padding", "4px 40px 0px 40px");
         header_layout.setAlignItems(FlexComponent.Alignment.CENTER);
 
-        Image miniReal_logo = new Image(fileSystem_service.getImageResource("/META-INF/resources/images/Logo.png"), "MiniReal Logo");
-        miniReal_logo.setHeight("45px");
+        Image miniReal_logo = new Image(fileSystem_service.getImageResource("/META-INF/resources/images/minireal_logo_updated(2x).png"), "MiniReal Logo");
+        miniReal_logo.setHeight("50px");
         header_layout.add(miniReal_logo);
         miniReal_logo.addClickListener(event -> {
             UI.getCurrent().navigate("/");
@@ -187,7 +189,10 @@ public class MainLayout extends AppLayout
         horizontal_line.getStyle().set("background", "var(--lumo-contrast-10pct)");
         horizontal_line.getStyle().set("margin", "0px 40px 0px 40px");
 
-        Span copyright_footer = new Span("Copyright © 2024 BaLab");
+
+//        Span copyright_footer = new Span("Copyright © 2024 BaLab");
+        String version_text = "Version: " + this.minirealConfigGetter.getProjectVersion();
+        Span copyright_footer = new Span(version_text);
         copyright_footer.getElement().getStyle().set("display", "flex");
         copyright_footer.getElement().getStyle().set("align-items", "center");
         Button about_footer = new Button("About", event -> {
@@ -201,6 +206,7 @@ public class MainLayout extends AppLayout
         footer_elts_layout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
 
         footer.add(horizontal_line, footer_elts_layout);
+//        footer.add(footer_elts_layout);
     }
 
     public void updateAvatar(Avatar user_avatar)

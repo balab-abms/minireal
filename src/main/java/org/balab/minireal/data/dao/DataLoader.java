@@ -40,7 +40,7 @@ public class DataLoader
             User owner_user = new User();
             owner_user.setUsername("owner");
             owner_user.setName("Owner Name");
-            owner_user.setHashedPassword(passwordEncoder.encode("1234"));
+            owner_user.setHashedPassword(passwordEncoder.encode("changemepwd"));
             Set<Role> ownerRoles = new HashSet<>();
             ownerRoles.add(Role.OWNER);
             owner_user.setRoles(ownerRoles);

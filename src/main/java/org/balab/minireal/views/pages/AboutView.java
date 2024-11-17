@@ -2,9 +2,11 @@ package org.balab.minireal.views.pages;
 
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
@@ -28,19 +30,36 @@ public class AboutView extends VerticalLayout
         setJustifyContentMode(JustifyContentMode.CENTER);
         setSpacing(true);
 
-        Image plant_img = new Image(file_system_service.getImageResource("/META-INF/resources/images/empty-plant 1.png"), "plant image");
-        plant_img.setWidth("240px");
-        plant_img.setHeight("240px");
-        plant_img.getStyle().set("margin-bottom", "36px");
+        Image minireal_header = new Image(file_system_service.getFileResource("simreal_data/assets/minireal-header-img.png"), "minireal header image");
+        minireal_header.setWidth("800px");
+        minireal_header.getStyle().set("margin-bottom", "36px");
+        H2 title = new H2("WSim4ABM (MiniReal)");
 
-        H2 title = new H2("About");
+        String simple_intro = "This is a WebService implementation for an Agent-based Modeling Simulator, shortly called WSim4ABM or MiniReal.\n" +
+                "This opensource project houses remote access to High Performance Computing (HPC) resources through \n" +
+                "browser based visualization for ABM simulations along with other services.";
+        Paragraph about_text = new Paragraph(simple_intro);
+        about_text.setWidth("600px");
 
-        Paragraph about_text = new Paragraph("SimReal is ... ");
+        Button doc_link_btn = new Button("Documentation");
+        doc_link_btn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        doc_link_btn.addClickListener(event -> {
+            UI.getCurrent().getPage().open("https://central.sonatype.com/artifact/io.github.panderior/minireal-annotation", "_blank");
+        });
+        Button repo_link_btn = new Button("Source Code");
+        repo_link_btn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        repo_link_btn.addClickListener(event -> {
+            UI.getCurrent().getPage().open("https://central.sonatype.com/artifact/io.github.panderior/minireal-annotation", "_blank");
+        });
+        HorizontalLayout link_btns_layout = new HorizontalLayout(doc_link_btn, repo_link_btn);
+        link_btns_layout.setJustifyContentMode(JustifyContentMode.BETWEEN);
+        link_btns_layout.setMinWidth("600px");
+        link_btns_layout.getStyle().set("margin-bottom", "36px");
 
         Button back_btn = new Button("Back", event -> {
             UI.getCurrent().getPage().getHistory().back();
         });
 
-        add(plant_img, title, about_text, back_btn);
+        add(minireal_header, title, about_text, link_btns_layout, back_btn);
     }
 }

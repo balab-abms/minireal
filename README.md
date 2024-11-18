@@ -29,28 +29,33 @@ accessibility and scalability for researchers and developers.
 ## Requirements  (Prerequisites)
 The requirements to deploying and utilizing the MiniReal system and workflow are:
 
-- [Docker]()
-- [Java]()
-- Integrated Development Environment (IDE), preferably [Intellij]() for the system was heavily tested on it
+- [Docker](https://www.docker.com/)
+- [Java](https://www.java.com/en/)
+- Integrated Development Environment (IDE), preferably [Intellij Idea](https://www.jetbrains.com/idea/) for the system was heavily tested on it
 - Web Browser
 
 ## Tech Stack / Built With
 The technology / frameworks / tools used in this project are:
-1. [Vaadin](https://vaadin.com/) -
-2. [Spring Boot](https://spring.io/projects/spring-boot) -
-3. [PostGREs](https://hub.docker.com/_/postgres) -
-4. [Apache Kafka](https://hub.docker.com/r/confluentinc/cp-kafka) -
-5. [MASON](https://cs.gmu.edu/~eclab/projects/mason/) -
-6. [MiniReal Annotation Library](https://central.sonatype.com/artifact/io.github.panderior/minireal-annotation) -
-7. [Gradle](https://gradle.org/) -
-8. [Maven](https://maven.apache.org/) -
+1. [Vaadin](https://vaadin.com/) - Vaadin is a platform for building modern web applications with a focus on Java, 
+providing a component-based framework that enables developers to create feature-rich, user-friendly interfaces.
+2. [Spring Boot](https://spring.io/projects/spring-boot) - Spring Boot is an open-source framework that simplifies the development of production-ready, standalone, 
+and microservice-based applications by providing a suite of pre-configured, convention-over-configuration features for the Spring ecosystem.
+3. [PostGREs](https://hub.docker.com/_/postgres) - PostgreSQL is an advanced, open-source relational database management system known for its robustness, 
+scalability, and support for complex queries.
+4. [Apache Kafka](https://hub.docker.com/r/confluentinc/cp-kafka) - Apache Kafka is an open-source distributed event streaming platform designed for high-throughput, 
+low-latency data streaming and processing.
+5. [MASON](https://cs.gmu.edu/~eclab/projects/mason/) - The MASON ABM library is a Java-based toolkit for creating large-scale agent-based simulations with support for 
+visualization and extensions for distributed and discrete event simulations.
+6. [MiniReal Annotation Library](https://central.sonatype.com/artifact/io.github.panderior/minireal-annotation) - This is a Java-based library designed to support annotations and processing for the 
+MiniReal Agent-Based Modeling (ABM) webservice.
+7. [Gradle](https://gradle.org/) - Gradle is an open-source build automation tool designed to be flexible and powerful, used primarily for Java 
+projects but capable of managing builds for a variety of languages and platforms.
+8. [Maven](https://maven.apache.org/) - Maven is an open-source build automation and project management tool primarily for Java projects, providing 
+a uniform build system, dependency management, and project information.
 
 ## Documentation
 The full documentation for this project can be found on the following site.
 * https://minireal-doc.pazd.org
-
-## Deployment of WSim4ABM
-
 
 ## How to Contribute
 Contributions are welcome. For significant modifications, please initiate a discussion by opening an issue first.

@@ -26,6 +26,7 @@ import org.balab.minireal.data.service.StorageProperties;
 import org.balab.minireal.data.service.UserService;
 import org.balab.minireal.security.AuthenticatedUser;
 import org.balab.minireal.views.MainLayout;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.ArrayList;
@@ -153,6 +154,8 @@ public class AddUserView extends VerticalLayout
                 user_service.update(new_user);
                 Notification.show("User successfully created.").addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 UI.getCurrent().navigate(UsersListView.class);
+            } catch (DataIntegrityViolationException e){
+                Notification.show("Username is not available!").addThemeVariants(NotificationVariant.LUMO_ERROR);
             } catch (Exception exp) {
                 Notification.show("User creation failed.").addThemeVariants(NotificationVariant.LUMO_ERROR);
                 throw new RuntimeException("Error in user creation");

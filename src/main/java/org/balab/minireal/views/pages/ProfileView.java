@@ -26,6 +26,7 @@ import org.balab.minireal.data.service.UserService;
 import org.balab.minireal.security.AuthenticatedUser;
 import org.balab.minireal.views.MainLayout;
 import org.balab.minireal.views.components.AvatarUpdateToken;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.io.File;
@@ -152,55 +153,64 @@ public class ProfileView extends VerticalLayout
 
         Button update_sim_btn = new Button("Update");
         update_sim_btn.addClickListener(event -> {
-            // get the field values
-            String username = username_tf.getValue();
-            String name = name_tf.getValue().trim();
-            String passwd = passwd_pf.getValue();
-            String confirm_passwd = confirm_passwd_pf.getValue();
+            try {
+                // get the field values
+                String username = username_tf.getValue();
+                String name = name_tf.getValue().trim();
+                String passwd = passwd_pf.getValue();
+                String confirm_passwd = confirm_passwd_pf.getValue();
 
-            User current_user = authed_user.get().get();
-            // update the user data
-            if(isFilledFormElements()){
-                current_user.setUsername(username);
-                current_user.setName(name);
-            } else {
-                Notification.show("Please enter Username and Name fields").addThemeVariants(NotificationVariant.LUMO_ERROR);
-                throw new RuntimeException("Please enter Username and Name fields");
-            }
-            // update pasword
-            if(!passwd.isEmpty() && passwd.equals(confirm_passwd)) {
-                BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-                current_user.setHashedPassword(passwordEncoder.encode(passwd));
-            } else if(!passwd.equals(confirm_passwd)) {
-                Notification.show("Password & Confirm Password don't match.").addThemeVariants(NotificationVariant.LUMO_ERROR);
-                throw new RuntimeException("Passwords don't match");
-            }
-            // update profile pic
-            if(profile_pic_data != null){
-                try{
+                User current_user = authed_user.get().get();
+                // update the user data
+                if (isFilledFormElements())
+                {
+                    current_user.setUsername(username);
+                    current_user.setName(name);
+                } else
+                {
+                    Notification.show("Please enter Username and Name fields").addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    throw new RuntimeException("Please enter Username and Name fields");
+                }
+                // update pasword
+                if (!passwd.isEmpty() && passwd.equals(confirm_passwd))
+                {
+                    BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+                    current_user.setHashedPassword(passwordEncoder.encode(passwd));
+                } else if (!passwd.equals(confirm_passwd))
+                {
+                    Notification.show("Password & Confirm Password don't match.").addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    throw new RuntimeException("Passwords don't match");
+                }
+                // update profile pic
+                if (profile_pic_data != null)
+                {
                     Long user_id = authed_user.get().get().getId();
                     String pic_path = user_saved_dir + File.separator + "profile_pics" + File.separator + pic_file_name;
                     boolean pic_saved = fs_service.saveFile(pic_path, profile_pic_data);
-                    if(pic_saved)
+                    if (pic_saved)
                     {
                         current_user.setProfilePath(pic_path);
                         UI.getCurrent().getSession().setAttribute(AvatarUpdateToken.class, new AvatarUpdateToken(this.toString()));
                     }
-                } catch (IOException e)
-                {
-                    Notification.show("File upload failed.").addThemeVariants(NotificationVariant.LUMO_ERROR);
-                    throw new RuntimeException(e);
                 }
+                // update user
+                user_service.update(current_user);
+                Notification.show("User data successfully updated.").addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                if (authed_user.get().isPresent())
+                {
+                    UI.getCurrent().navigate("/");
+                } else
+                {
+                    authed_user.logout();
+                }
+            } catch (DataIntegrityViolationException e){
+                Notification.show("Username is not available!").addThemeVariants(NotificationVariant.LUMO_ERROR);
+            } catch (IOException e) {
+                Notification.show("File upload failed.").addThemeVariants(NotificationVariant.LUMO_ERROR);
+                throw new RuntimeException(e);
+            } catch (Exception e) {
+                Notification.show("Error in updating user data!").addThemeVariants(NotificationVariant.LUMO_ERROR);
             }
-            // update user
-            user_service.update(current_user);
-            Notification.show("User data successfully updated.").addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-            if(authed_user.get().isPresent()){
-                UI.getCurrent().navigate("/");
-            } else {
-                authed_user.logout();
-            }
-
         });
         update_sim_btn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 

@@ -30,7 +30,7 @@ public class SimulationService
     private ConcurrentHashMap<String, Process> process_map = new ConcurrentHashMap<>();
     public boolean runSimulation(String file_path, String model_params, SimSession sim_session) throws IOException, InterruptedException {
         boolean is_sim_sucess = false;
-        String kafka_serializer_path = "simreal_data" + File.separator + "dependencies" + File.separator + "kafka_template.ser";
+        String kafka_serializer_path = "minireal_data" + File.separator + "dependencies" + File.separator + "kafka_template.ser";
         ProcessBuilder processBuilder = new ProcessBuilder(
                 "java",
                 "-jar",

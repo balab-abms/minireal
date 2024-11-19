@@ -23,6 +23,7 @@ public class DataLoader
 {
     private final UserService user_service;
     private final SampleModelService samples_service;
+    private final String sample_models_path = "minireal_data/sample_models/";
 
     @PostConstruct
     private void loadData()
@@ -56,7 +57,7 @@ public class DataLoader
                 economy.setModel("Economy");
                 economy.setAgents(new String[]{"Person"});
                 economy.setFields(new String[]{"Bag"});
-                File economy_file = new File("simreal_data/sample_models/MiniReal_Economy.zip");
+                File economy_file = new File(sample_models_path + "MiniReal_Economy.zip");
                 samples_service.saveSampleModel(economy, economy_file.getName(), Files.readAllBytes(Path.of(economy_file.getPath())));
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -68,7 +69,7 @@ public class DataLoader
                 life.setModel("Life");
                 life.setAgents(new String[]{"Cell"});
                 life.setFields(new String[]{"Grid2D"});
-                File life_file = new File("simreal_data/sample_models/MiniReal_Life.zip");
+                File life_file = new File(sample_models_path + "MiniReal_Life.zip");
                 samples_service.saveSampleModel(life, life_file.getName(), Files.readAllBytes(Path.of(life_file.getPath())));
             } catch (IOException e) {
                 throw new RuntimeException(e);

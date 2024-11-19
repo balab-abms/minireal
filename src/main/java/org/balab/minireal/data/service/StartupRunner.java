@@ -21,7 +21,15 @@ public class StartupRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        String kafka_serilizer_path = "simreal_data" + File.separator + "dependencies" + File.separator + "kafka_template.ser";
+        String kafka_serilizer_path = "minireal_data" + File.separator + "dependencies" + File.separator + "kafka_template.ser";
+
+        // Create the directories if they do not exist
+        File targetFile = new File(kafka_serilizer_path);
+        File parentDir = targetFile.getParentFile();
+        if (!parentDir.exists()) {
+            parentDir.mkdirs();
+        }
+
         writeKafkaTemplateToFile(kafkaTemplate, kafka_serilizer_path);
         System.out.println("Kafka template serialized.");
     }
@@ -36,3 +44,4 @@ public class StartupRunner implements CommandLineRunner {
         }
     }
 }
+

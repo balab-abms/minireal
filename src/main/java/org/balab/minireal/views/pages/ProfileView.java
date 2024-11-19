@@ -3,6 +3,7 @@ package org.balab.minireal.views.pages;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.notification.Notification;
@@ -149,7 +150,6 @@ public class ProfileView extends VerticalLayout
         // created buttons layout and buttons
         Button cancel_btn = new Button("Cancel", evnt -> UI.getCurrent().navigate(SamplesView.class));
         cancel_btn.addThemeVariants(ButtonVariant.LUMO_ERROR);
-        cancel_btn.getStyle().set("margin-inline-end", "auto");
 
         Button update_sim_btn = new Button("Update");
         update_sim_btn.addClickListener(event -> {
@@ -214,7 +214,15 @@ public class ProfileView extends VerticalLayout
         });
         update_sim_btn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
-        HorizontalLayout button_layout = new HorizontalLayout(cancel_btn, update_sim_btn);
+        Button delete_account_btn = new Button("Delete Account");
+        delete_account_btn.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
+        delete_account_btn.getStyle().set("margin-inline-end", "auto");
+        delete_account_btn.addClickListener(event -> {
+            setupDeleteConfirmGrid(authed_user.get().get());
+        });
+
+
+        HorizontalLayout button_layout = new HorizontalLayout(cancel_btn, delete_account_btn, update_sim_btn);
         button_layout.getStyle().set("flex-wrap", "wrap");
         button_layout.setJustifyContentMode(JustifyContentMode.END);
         button_layout.getStyle().set("padding", "12px");
@@ -230,5 +238,39 @@ public class ProfileView extends VerticalLayout
     private boolean isFilledFormElements()
     {
         return !username_tf.isEmpty() && !name_tf.isEmpty();
+    }
+
+    private ConfirmDialog setupDeleteConfirmGrid(User user) {
+        ConfirmDialog delete_grid_dialog = new ConfirmDialog();
+        delete_grid_dialog.setHeader("Delete User");
+        delete_grid_dialog.setText(String.format("Do you want to delete your account?"));
+
+        delete_grid_dialog.setCancelable(true);
+        delete_grid_dialog.addCancelListener(event -> delete_grid_dialog.close());
+
+        delete_grid_dialog.setRejectable(false);
+
+        Button delete_user_btn = new Button("Delete");
+        delete_user_btn.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_ERROR);
+        delete_user_btn.addClickListener(event -> {
+            try
+            {
+                user_service.delete(user.getId());
+                Notification.show("User Deleted successfully.").addThemeVariants(NotificationVariant.LUMO_PRIMARY);
+                delete_grid_dialog.close();
+                if (authed_user.get().isPresent())
+                    UI.getCurrent().getPage().reload();
+                else
+                    authed_user.logout();
+            } catch (IOException e)
+            {
+                Notification.show("Error in deleting User.").addThemeVariants(NotificationVariant.LUMO_ERROR);
+                throw new RuntimeException(e);
+            }
+        });
+        delete_grid_dialog.setConfirmButton(delete_user_btn);
+        delete_grid_dialog.open();
+
+        return delete_grid_dialog;
     }
 }

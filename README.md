@@ -1,10 +1,11 @@
-![Header](./simreal_data/assets/minireal-header-img.png)
+![Header](./minireal_data/assets/minireal-header-img.png)
 # WebService of Simulator for Agent-based Modeling
 ## (WSim4ABM or MiniReal)
 > This is a WebService implementation for an Agent-based Modeling Simulator, shortly called WSim4ABM or MiniReal.
 > This opensource project houses remote access to High Performance Computing (HPC) resources through 
 > browser based visualization for ABM simulations along with other services.
 
+[[Documentation]()] [[Paper]()]
 ## Introduction
 **WSim4ABM** (MiniReal) is a web-based simulation platform for Agent-Based Modeling (ABM), built on top of the **MASON** simulation 
 library for its extensibility, flexibility, and compatibility with Java ecosystems. The platform enables users to 
@@ -24,7 +25,7 @@ between the simulation engine and the User Interface.
 WSim4ABM provides an end-to-end solution for developing, running, and visualizing ABM simulations, enhancing 
 accessibility and scalability for researchers and developers.
 
-![Simreal Simulation Page](./simreal_data/assets/simreal_run_page.png)
+![Simreal Simulation Page](./minireal_data/assets/simreal_run_page.png)
 
 ## Requirements  (Prerequisites)
 The requirements to deploying and utilizing the MiniReal system and workflow are:

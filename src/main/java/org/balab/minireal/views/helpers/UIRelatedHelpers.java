@@ -94,7 +94,7 @@ public class UIRelatedHelpers
         }
 
         // next: implement gradle project generation (check about best practises)
-        String templates_path = "simreal_data" + File.separator + "template_files";
+        String templates_path = "minireal_data" + File.separator + "template_files";
         String copy_temp_cmd = "cp -a " + templates_path + File.separator + ". " + model_file.getPath();
         Pair<Integer, String> copy_output = os_service.commandRunner(null, copy_temp_cmd, 0);
         System.out.println(copy_output.getB());

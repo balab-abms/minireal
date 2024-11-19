@@ -30,7 +30,7 @@ public class AboutView extends VerticalLayout
         setJustifyContentMode(JustifyContentMode.CENTER);
         setSpacing(true);
 
-        Image minireal_header = new Image(file_system_service.getFileResource("simreal_data/assets/minireal-header-img.png"), "minireal header image");
+        Image minireal_header = new Image(file_system_service.getFileResource("minireal_data/assets/minireal-header-img.png"), "minireal header image");
         minireal_header.setWidth("800px");
         minireal_header.getStyle().set("margin-bottom", "36px");
         H2 title = new H2("WSim4ABM (MiniReal)");

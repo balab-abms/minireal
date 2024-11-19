@@ -3,6 +3,7 @@
   "license": "UNLICENSED",
   "type": "module",
   "dependencies": {
+    "@f0rce/lit-ace": "1.11.1",
     "@polymer/polymer": "3.5.1",
     "@vaadin/a11y-base": "24.3.8",
     "@vaadin/accordion": "24.3.8",
@@ -76,6 +77,7 @@
     "@vaadin/virtual-list": "24.3.8",
     "construct-style-sheets-polyfill": "3.1.0",
     "date-fns": "2.29.3",
+    "echarts": "5.5.0",
     "lit": "3.1.2",
     "proj4": "2.9.2"
   },
@@ -172,10 +174,13 @@
     "@polymer/polymer": "$@polymer/polymer",
     "proj4": "$proj4",
     "@vaadin/vaadin-themable-mixin": "$@vaadin/vaadin-themable-mixin",
-    "date-fns": "$date-fns"
+    "date-fns": "$date-fns",
+    "echarts": "$echarts",
+    "@f0rce/lit-ace": "$@f0rce/lit-ace"
   },
   "vaadin": {
     "dependencies": {
+      "@f0rce/lit-ace": "1.11.1",
       "@polymer/polymer": "3.5.1",
       "@vaadin/a11y-base": "24.3.8",
       "@vaadin/accordion": "24.3.8",
@@ -249,6 +254,7 @@
       "@vaadin/virtual-list": "24.3.8",
       "construct-style-sheets-polyfill": "3.1.0",
       "date-fns": "2.29.3",
+      "echarts": "5.5.0",
       "lit": "3.1.2",
       "proj4": "2.9.2"
     },
@@ -270,6 +276,6 @@
       "workbox-core": "7.0.0",
       "workbox-precaching": "7.0.0"
     },
-    "hash": "e61c3f82976214a634c6d814263efbfd409a6c2e6e6e91c234fc12d79905edd1"
+    "hash": "08d449b8b7be775a0b4fb30aecda4bc80654f1c27b2960e95d18d2a01aa8887b"
   }
 }

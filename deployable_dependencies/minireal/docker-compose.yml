@@ -10,5 +10,5 @@ services:
       - 8090:8090
     volumes:
       - ./data:/usr/src/app/data
-      - ./simreal_data:/usr/src/app/simreal_data
+#      - ./minireal_data:/usr/src/app/minireal_data
 

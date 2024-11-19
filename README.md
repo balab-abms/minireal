@@ -1,4 +1,9 @@
 ![Header](./minireal_data/assets/minireal-header-img.png)
+<p align="center">
+    <img src="https://img.shields.io/github/languages/count/balab-abms/minireal" alt="langs" />
+    <img src="https://img.shields.io/github/languages/top/balab-abms/minireal" alt="top_lang" />
+    <img src="https://img.shields.io/github/last-commit/balab-abms/minireal" alt="last_commit" />
+</p>
 # WebService of Simulator for Agent-based Modeling
 ## (WSim4ABM or MiniReal)
 > This is a WebService implementation for an Agent-based Modeling Simulator, shortly called WSim4ABM or MiniReal.

@@ -23,6 +23,10 @@ public class FileSystemService
     {
         String storage_file_path = file_path;
         File file_store = new File(storage_file_path);
+        // Delete the existing file if it exists
+        if (file_store.exists()) {
+            file_store.delete();
+        }
         file_store.getParentFile().mkdirs();
         FileUtils.writeByteArrayToFile(file_store, file_byte);
         return true;

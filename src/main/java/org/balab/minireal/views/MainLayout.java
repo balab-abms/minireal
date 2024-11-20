@@ -81,7 +81,7 @@ public class MainLayout extends AppLayout
         header_layout.setAlignItems(FlexComponent.Alignment.CENTER);
 
         Image miniReal_logo = new Image(fileSystem_service.getImageResource("/META-INF/resources/images/minireal_logo_updated(2x).png"), "MiniReal Logo");
-        miniReal_logo.setHeight("50px");
+        miniReal_logo.setHeight("45px");
         header_layout.add(miniReal_logo);
         miniReal_logo.addClickListener(event -> {
             UI.getCurrent().navigate("/");

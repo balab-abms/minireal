@@ -9,6 +9,7 @@ data/
 #.env*
 *.iml
 .DS_Store
+kafka_template.ser
 
 # The following files are generated/updated by vaadin-maven-plugin
 node_modules/

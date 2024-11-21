@@ -61,8 +61,9 @@ projects but capable of managing builds for a variety of languages and platforms
 a uniform build system, dependency management, and project information.
 
 ## Documentation
-The full documentation for this project can be found on the following site.
-* https://minireal-doc.pazd.org
+The full documentation for deployment and usage of this project can be found on the following site.
+* doc-site: https://minireal-doc.pazd.org
+* doc-source-code: https://github.com/balab-abms/minireal-mkdocs
 
 ## How to Contribute
 Contributions are welcome. For significant modifications, please initiate a discussion by opening an issue first.

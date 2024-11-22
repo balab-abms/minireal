@@ -85,6 +85,15 @@ public class UIRelatedHelpers
 
     public File generateModelJar(SimForm sim_data, File model_file) throws FileNotFoundException, IOException, Exception
     {
+        // delete directory if it exists
+        if (model_file.exists()){
+            String remove_dir_cmd = "rm -r " + model_file.getName();
+            String remove_zip_cmd = "rm " + model_file.getName() + ".zip";
+            os_service.commandRunner(new File(model_file.getParent()).getPath(), remove_dir_cmd, 0);
+            os_service.commandRunner(new File(model_file.getParent()).getPath(), remove_zip_cmd, 0);
+            System.out.println("Deleted existing dir for model generation");
+        }
+
         boolean isDirectoryCreated = model_file.mkdirs();
         // check if model directory creation failed
         if(!isDirectoryCreated)

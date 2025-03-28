@@ -3,6 +3,7 @@ package org.balab.minireal.data.service;
 import lombok.RequiredArgsConstructor;
 import org.balab.minireal.data.entity.SimSession;
 import org.balab.minireal.views.helpers.SImRelatedHelpers;
+import org.balab.minireal.views.helpers.SimulationResult;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -28,7 +29,7 @@ public class SimulationService
     private final SImRelatedHelpers sim_helper_service;
     private final Sinks.Many<String> sim_session_del_publisher;
     private ConcurrentHashMap<String, Process> process_map = new ConcurrentHashMap<>();
-    public boolean runSimulation(String file_path, String model_params, SimSession sim_session) throws IOException, InterruptedException {
+    public SimulationResult runSimulation(String file_path, String model_params, SimSession sim_session) throws IOException, InterruptedException {
         boolean is_sim_sucess = false;
         String kafka_serializer_path = "minireal_data" + File.separator + "dependencies" + File.separator + "kafka_template.ser";
         ProcessBuilder processBuilder = new ProcessBuilder(
@@ -39,23 +40,40 @@ public class SimulationService
                 model_params,
                 sim_session.getToken());
 
+        // Start the timer before running the process
+        long startTime = System.currentTimeMillis();
+
         Process process = processBuilder.start();
         process_map.put(sim_session.getToken(), process);
 
         // Capture the output stream
+        StringBuilder outputBuilder = new StringBuilder();
         BufferedReader outputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
         String line;
         while ((line = outputReader.readLine()) != null) {
             System.out.println(line);
+            outputBuilder.append(line).append("\n");
         }
 
         // Capture the error stream
+        StringBuilder errorBuilder = new StringBuilder();
         BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
         while ((line = errorReader.readLine()) != null) {
             System.err.println(line);
+            errorBuilder.append(line).append("\n");
         }
 
         int exitCode = process.waitFor();
+
+        // Stop the timer after process completion
+        long endTime = System.currentTimeMillis();
+        long elapsedTimeMs = endTime - startTime;
+        // Convert milliseconds to minutes as a double and round to 2 decimal places
+        double minutes = elapsedTimeMs / 60000.0;
+        double roundedMinutes = Math.round(minutes * 100.0) / 100.0;
+
+        System.out.println("Elapsed time: " + roundedMinutes + " minutes");
+
         System.out.println("Jar execution done ... exit code = " + exitCode);
         if(exitCode == 0) {
             is_sim_sucess = true;
@@ -64,7 +82,13 @@ public class SimulationService
         process_map.remove(sim_session.getToken());
 
         // todo: kill all the threads on db and ui services related to this sim
-        return is_sim_sucess;
+//        return is_sim_sucess;
+        return new SimulationResult(
+                is_sim_sucess,
+                roundedMinutes,
+                outputBuilder.toString(),
+                errorBuilder.toString()
+        );
     }
 
     public boolean stopSimulation(SimSession sim_session)

@@ -42,6 +42,7 @@ import org.balab.minireal.views.MainLayout;
 import org.balab.minireal.views.components.DBView;
 import org.balab.minireal.views.components.ParamView;
 import org.balab.minireal.views.helpers.SImRelatedHelpers;
+import org.balab.minireal.views.helpers.SimulationResult;
 import org.balab.minireal.views.helpers.UIRelatedHelpers;
 import org.springframework.beans.factory.annotation.Value;
 import org.vaadin.addons.chartjs.ChartJs;
@@ -377,11 +378,12 @@ public class RunView extends VerticalLayout
                         sim_session.set_failed(false);
                         sim_session = sim_session_service.updateSimSession(sim_session);
 
-                        boolean is_sim_run = sim_service.runSimulation(model_uploaded_path, param_json, sim_session);
+//                        boolean is_sim_run = sim_service.runSimulation(model_uploaded_path, param_json, sim_session);
+                        SimulationResult sim_result_data = sim_service.runSimulation(model_uploaded_path, param_json, sim_session);
 
                         // UI updates should be run on the UI thread
                         getUI().ifPresent(ui -> ui.access(() -> {
-                            if (is_sim_run) {
+                            if (sim_result_data.isSuccess()) {
                                 sim_session.set_completed(true);
                                 sim_session = sim_session_service.updateSimSession(sim_session);
                                 try {
@@ -391,8 +393,9 @@ public class RunView extends VerticalLayout
                                 } catch (Exception e) {
                                     throw new RuntimeException(e);
                                 }
-
-                                Notification.show("Simulation run successful").addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                                
+                                // todo: add simulation run time here
+                                Notification.show("Simulation run successful (" + sim_result_data.getElapsedTime() + " " + sim_result_data.getTime_unit() + ").").addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                                 // delete listener threads and kafka topics
                                 sim_helper_service.deleteThreadsTopics(sim_session.getToken());
                             }

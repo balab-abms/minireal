@@ -395,7 +395,10 @@ public class RunView extends VerticalLayout
                                 }
                                 
                                 // todo: add simulation run time here
-                                Notification.show("Simulation run successful (" + sim_result_data.getElapsedTime() + " " + sim_result_data.getTime_unit() + ").").addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                                Notification.show("Simulation run successful (" + sim_result_data.getElapsedTime() + " " + sim_result_data.getTime_unit() + ").",
+                                                10000,
+                                                Notification.Position.BOTTOM_START)
+                                            .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                                 // delete listener threads and kafka topics
                                 sim_helper_service.deleteThreadsTopics(sim_session.getToken());
                             }

@@ -17,7 +17,15 @@ public class SimulationResult {
         this.elapsedTime = elapsedTime;
         this.output = output;
         this.error = error;
-        this.time_unit = "minute";
+        this.time_unit = "ms";
+    }
+
+    public SimulationResult(boolean success, double elapsedTime, String elapsedUnit, String output, String error) {
+        this.success = success;
+        this.elapsedTime = elapsedTime;
+        this.time_unit = elapsedUnit;
+        this.output = output;
+        this.error = error;
     }
 }
 

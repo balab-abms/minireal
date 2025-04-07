@@ -44,12 +44,12 @@ public class AboutView extends VerticalLayout
         Button doc_link_btn = new Button("Documentation");
         doc_link_btn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         doc_link_btn.addClickListener(event -> {
-            UI.getCurrent().getPage().open("https://central.sonatype.com/artifact/io.github.panderior/minireal-annotation", "_blank");
+            UI.getCurrent().getPage().open("https://minireal-doc.pazd.org/", "_blank");
         });
         Button repo_link_btn = new Button("Source Code");
         repo_link_btn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         repo_link_btn.addClickListener(event -> {
-            UI.getCurrent().getPage().open("https://central.sonatype.com/artifact/io.github.panderior/minireal-annotation", "_blank");
+            UI.getCurrent().getPage().open("https://github.com/balab-abms/minireal", "_blank");
         });
         HorizontalLayout link_btns_layout = new HorizontalLayout(doc_link_btn, repo_link_btn);
         link_btns_layout.setJustifyContentMode(JustifyContentMode.BETWEEN);

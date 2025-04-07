@@ -9,12 +9,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import oshi.util.tuples.Pair;
 import reactor.core.publisher.Sinks;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -69,10 +72,13 @@ public class SimulationService
         long endTime = System.currentTimeMillis();
         long elapsedTimeMs = endTime - startTime;
         // Convert milliseconds to minutes as a double and round to 2 decimal places
-        double minutes = elapsedTimeMs / 60000.0;
-        double roundedMinutes = Math.round(minutes * 100.0) / 100.0;
+//        double minutes = elapsedTimeMs / 60000.0;
+//        double roundedMinutes = Math.round(minutes * 100.0) / 100.0;
+        // convert elapsed time to relevenat scale
+        Pair<Double, String> elapsed_time_unit_pair = simElapsedTimeConverter(elapsedTimeMs);
 
-        System.out.println("Elapsed time: " + roundedMinutes + " minutes");
+
+        System.out.println("*** Elapsed time: " + elapsed_time_unit_pair.getA() + " " + elapsed_time_unit_pair.getB());
 
         System.out.println("Jar execution done ... exit code = " + exitCode);
         if(exitCode == 0) {
@@ -82,10 +88,11 @@ public class SimulationService
         process_map.remove(sim_session.getToken());
 
         // todo: kill all the threads on db and ui services related to this sim
-//        return is_sim_sucess;
+//        return is_sim_success;
         return new SimulationResult(
                 is_sim_sucess,
-                roundedMinutes,
+                elapsed_time_unit_pair.getA(),
+                elapsed_time_unit_pair.getB(),
                 outputBuilder.toString(),
                 errorBuilder.toString()
         );
@@ -142,5 +149,37 @@ public class SimulationService
         sim_session_service.deleteSimSession(session);
     }
 
+    private Pair<Double, String> simElapsedTimeConverter(long elapsedTimeMs)
+    {
+        double timeValue;
+        String timeUnit;
+        if (elapsedTimeMs < 1000) {
+            // Less than 1 second, show in milliseconds
+            timeValue = elapsedTimeMs;
+            timeUnit = "ms";
+        } else if (elapsedTimeMs < 60000) {
+            // Less than 1 minute, show in seconds
+            timeValue = elapsedTimeMs / 1000.0;
+            timeUnit = "seconds";
+        } else if (elapsedTimeMs < 3600000) {
+            // Less than 1 hour, show in minutes
+            timeValue = elapsedTimeMs / 60000.0;
+            timeUnit = "minutes";
+        } else if (elapsedTimeMs < 86400000) {
+            // Less than 1 day, show in hours
+            timeValue = elapsedTimeMs / 3600000.0;
+            timeUnit = "hours";
+        } else {
+            // 1 day or more, show in days
+            timeValue = elapsedTimeMs / 86400000.0;
+            timeUnit = "days";
+        }
 
+        // Use BigDecimal to round the time value to 2 decimal places
+        double roundedTimeValue = BigDecimal.valueOf(timeValue)
+                .setScale(2, RoundingMode.HALF_UP)
+                .doubleValue();
+
+        return new Pair<>(roundedTimeValue, timeUnit);
+    }
 }

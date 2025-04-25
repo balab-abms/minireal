@@ -12,7 +12,7 @@
 > browser based visualization for ABM simulations along with other services.
 
 <p align="center">
-  <a href="https://minireal-doc.pazd.org">Documentation</a> &nbsp; <a href="#">Paper</a>
+  <a href="https://minireal-doc.pazd.org">Documentation</a> &nbsp; <a href="https://www.sciencedirect.com/science/article/pii/S2352711025001402">Paper</a>
 </p>
 
 

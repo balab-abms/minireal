@@ -24,6 +24,7 @@ import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.dom.DomEvent;
 import com.vaadin.flow.dom.DomEventListener;
+import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.theme.Theme;
 import com.vaadin.flow.theme.lumo.LumoUtility;
@@ -55,6 +56,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 
+@PageTitle("Run Simulation")
 @Route(value = "run", layout = MainLayout.class)
 @PermitAll
 @CssImport("./styles/upload-center-style.css")

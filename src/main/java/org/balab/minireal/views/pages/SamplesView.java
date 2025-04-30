@@ -26,6 +26,7 @@ import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.DataProviderListener;
 import com.vaadin.flow.data.provider.Query;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
 import com.vaadin.flow.server.StreamResource;
@@ -47,8 +48,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
 
+
 @Route(value = "sample", layout = MainLayout.class)
 @RouteAlias(value = "", layout = MainLayout.class)
+@PageTitle("Sample Models")
 @PermitAll
 @CssImport("./styles/grid-message-when-empty.css")
 public class SamplesView extends VerticalLayout

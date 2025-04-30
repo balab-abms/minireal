@@ -21,6 +21,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.binder.PropertyId;
 import com.vaadin.flow.data.binder.ValidationException;
+import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.PermitAll;
@@ -40,6 +41,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+@PageTitle("Create Model")
 @Route(value = "create", layout = MainLayout.class)
 @PermitAll
 public class CreateModelView extends VerticalLayout

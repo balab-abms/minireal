@@ -8,12 +8,14 @@ import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import jakarta.annotation.security.PermitAll;
 import org.balab.minireal.data.service.FileSystemService;
 import org.balab.minireal.views.MainLayout;
 
+@PageTitle("About")
 @Route(value = "about", layout = MainLayout.class)
 @AnonymousAllowed
 public class AboutView extends VerticalLayout

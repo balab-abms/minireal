@@ -16,6 +16,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.PermitAll;
@@ -34,6 +35,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
+@PageTitle("User Profile")
 @Route(value = "profile", layout = MainLayout.class)
 @PermitAll
 public class ProfileView extends VerticalLayout

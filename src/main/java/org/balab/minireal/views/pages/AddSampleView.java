@@ -16,6 +16,7 @@ import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.dom.DomEvent;
 import com.vaadin.flow.dom.DomEventListener;
+import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
 import com.vaadin.flow.theme.lumo.LumoUtility;
@@ -33,6 +34,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+@PageTitle("Sample Models")
 @Route(value = "addsample", layout = MainLayout.class)
 @RolesAllowed({"ADMIN", "OWNER"})
 public class AddSampleView extends VerticalLayout {

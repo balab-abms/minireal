@@ -16,6 +16,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.data.binder.Binder;
+import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.RolesAllowed;
@@ -33,6 +34,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
+@PageTitle("Manage Users")
 @Route(value = "adduser", layout = MainLayout.class)
 @RolesAllowed({"ADMIN", "OWNER"})
 public class AddUserView extends VerticalLayout

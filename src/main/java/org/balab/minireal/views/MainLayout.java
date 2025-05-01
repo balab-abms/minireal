@@ -83,20 +83,20 @@ public class MainLayout extends AppLayout
     private void addDrawerContent() {
         Image miniReal_logo = new Image(fileSystem_service.getImageResource("/META-INF/resources/images/minireal_logo_updated(2x).png"), "MiniReal Logo");
         miniReal_logo.setHeight("50px");
-        miniReal_logo.getStyle().set("margin-bottom", "16px");
+        miniReal_logo.getStyle().set("margin-bottom", "24px");
 
 
-        H2 appName = new H2("WSim4ABM");
-        appName.addClassNames(LumoUtility.FontWeight.SEMIBOLD, LumoUtility.FontSize.MEDIUM);
-        appName.getStyle().set("margin-bottom", "24px");
+//        H2 appName = new H2("WSim4ABM");
+//        appName.addClassNames(LumoUtility.FontWeight.SEMIBOLD, LumoUtility.FontSize.MEDIUM);
+//        appName.getStyle().set("margin-bottom", "24px");
 
-        VerticalLayout header_layout = new VerticalLayout(miniReal_logo, appName);
-        header_layout.setWidthFull();
-        header_layout.setAlignItems(FlexComponent.Alignment.CENTER);
-        header_layout.setSpacing(false);
-        header_layout.setPadding(false);
+//        VerticalLayout header_layout = new VerticalLayout(miniReal_logo, appName);
+//        header_layout.setWidthFull();
+//        header_layout.setAlignItems(FlexComponent.Alignment.CENTER);
+//        header_layout.setSpacing(false);
+//        header_layout.setPadding(false);
 
-        VerticalLayout drawer_layout = new VerticalLayout(header_layout, createNavigation());
+        VerticalLayout drawer_layout = new VerticalLayout(miniReal_logo, createNavigation());
         drawer_layout.setSpacing(true);
         drawer_layout.getStyle().set("gap", "24px");
         drawer_layout.setSizeFull();
@@ -123,7 +123,7 @@ public class MainLayout extends AppLayout
         DrawerToggle toggle = new DrawerToggle();
         toggle.setAriaLabel("Menu toggle");
 
-        viewTitle = new H1();
+        viewTitle = new H1("WSim4ABM");
         viewTitle.addClassNames(LumoUtility.FontSize.LARGE, LumoUtility.Margin.NONE);
         viewTitle.getStyle().set("text-align", "center");
         viewTitle.setWidthFull();
@@ -302,18 +302,16 @@ public class MainLayout extends AppLayout
         // set the content part to the routed view
         child_content.removeAll();
         child_content.add((Component) content);
-        viewTitle.setText(getCurrentPageTitle());
-        System.out.println("*** Page Title: " + getCurrentPageTitle());
     }
 
     @Override
     protected void afterNavigation() {
         super.afterNavigation();
-        viewTitle.setText(getCurrentPageTitle());
+//        viewTitle.setText(getCurrentPageTitle());
     }
 
-    private String getCurrentPageTitle() {
-        PageTitle title = getContent().getClass().getAnnotation(PageTitle.class);
-        return title == null ? "" : title.value();
-    }
+//    private String getCurrentPageTitle() {
+//        PageTitle title = getContent().getClass().getAnnotation(PageTitle.class);
+//        return title == null ? "" : title.value();
+//    }
 }

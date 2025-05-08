@@ -272,7 +272,7 @@ public class MainLayout extends AppLayout
             nav.addItem(new SideNavItem("Sample Models", SamplesView.class, LineAwesomeIcon.FILE_DOWNLOAD_SOLID.create()));
             nav.addItem(new SideNavItem("Create Model", CreateModelView.class, LineAwesomeIcon.MAGIC_SOLID.create()));
             nav.addItem(new SideNavItem("Run Simulation", RunView.class, LineAwesomeIcon.PLAY_CIRCLE_SOLID.create()));
-            nav.addItem(new SideNavItem("Batch Simulation", RunView.class, LineAwesomeIcon.COGS_SOLID.create()));
+            nav.addItem(new SideNavItem("Batch Simulation", BatchRunView.class, LineAwesomeIcon.COGS_SOLID.create()));
             nav.addItem(new SideNavItem("Model Calibration", RunView.class, LineAwesomeIcon.SLIDERS_H_SOLID.create()));
 
             User currentUser = authenticatedUser.get().get();

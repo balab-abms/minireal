@@ -4,7 +4,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.vaadin.flow.component.html.Label;
+//import com.vaadin.flow.component.html.Label;
+import com.vaadin.flow.component.html.NativeLabel;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 
@@ -23,7 +24,7 @@ public class ParamView extends VerticalLayout
         JsonArray params_json = metaData_json.get("paramDTOList").getAsJsonArray();
 
         // add param fields
-        add(new Label("Parameters"));
+        add(new NativeLabel("Parameters"));
         addParamFields(params_json);
     }
 

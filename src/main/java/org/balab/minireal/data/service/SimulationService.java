@@ -32,16 +32,28 @@ public class SimulationService
     private final SImRelatedHelpers sim_helper_service;
     private final Sinks.Many<String> sim_session_del_publisher;
     private ConcurrentHashMap<String, Process> process_map = new ConcurrentHashMap<>();
-    public SimulationResult runSimulation(String file_path, String model_params, SimSession sim_session) throws IOException, InterruptedException {
+    public SimulationResult runSimulation(String file_path, String model_params, SimSession sim_session, String comb_name) throws IOException, InterruptedException {
         boolean is_sim_sucess = false;
         String kafka_serializer_path = "minireal_data" + File.separator + "dependencies" + File.separator + "kafka_template.ser";
-        ProcessBuilder processBuilder = new ProcessBuilder(
-                "java",
-                "-jar",
-                file_path,
-                kafka_serializer_path,
-                model_params,
-                sim_session.getToken());
+        ProcessBuilder processBuilder = null;
+        if(comb_name != null){
+            processBuilder = new ProcessBuilder(
+                    "java",
+                    "-jar",
+                    file_path,
+                    kafka_serializer_path,
+                    model_params,
+                    sim_session.getToken(),
+                    comb_name);
+        } else {
+            processBuilder = new ProcessBuilder(
+                    "java",
+                    "-jar",
+                    file_path,
+                    kafka_serializer_path,
+                    model_params,
+                    sim_session.getToken());
+        }
 
         // Start the timer before running the process
         long startTime = System.currentTimeMillis();

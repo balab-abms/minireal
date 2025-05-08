@@ -2,7 +2,6 @@ package org.balab.minireal.views.pages;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.storedobject.chart.*;
 import com.vaadin.flow.component.DetachEvent;
@@ -12,7 +11,6 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.H5;
-import com.vaadin.flow.component.html.NativeLabel;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexLayout;
@@ -26,7 +24,6 @@ import com.vaadin.flow.dom.DomEvent;
 import com.vaadin.flow.dom.DomEventListener;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.theme.Theme;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.PermitAll;
 import org.apache.commons.io.IOUtils;
@@ -46,8 +43,6 @@ import org.balab.minireal.views.helpers.SImRelatedHelpers;
 import org.balab.minireal.views.helpers.SimulationResult;
 import org.balab.minireal.views.helpers.UIRelatedHelpers;
 import org.springframework.beans.factory.annotation.Value;
-import org.vaadin.addons.chartjs.ChartJs;
-import org.vaadin.addons.chartjs.config.LineChartConfig;
 import oshi.util.tuples.Pair;
 import reactor.core.publisher.Flux;
 
@@ -56,11 +51,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 
-@PageTitle("Run Simulation")
-@Route(value = "run", layout = MainLayout.class)
+@PageTitle("Batch Run Simulations")
+@Route(value = "batch", layout = MainLayout.class)
 @PermitAll
 @CssImport("./styles/upload-center-style.css")
-public class RunView extends VerticalLayout
+public class BatchRunView extends VerticalLayout
 {
     // define services
     private final AuthenticatedUser authed_user;
@@ -102,7 +97,7 @@ public class RunView extends VerticalLayout
     @Value("${spring.kafka.bootstrap-servers}")
     private String kafka_broker;
 
-    public RunView(
+    public BatchRunView(
             AuthenticatedUser authed_user,
             FileSystemService fs_service,
             StorageProperties storage_properties,
@@ -166,7 +161,7 @@ public class RunView extends VerticalLayout
 
     public void setupComponents(){
         // create header
-        VerticalLayout title_layout = new VerticalLayout(new H3("Run Model"));
+        VerticalLayout title_layout = new VerticalLayout(new H3("Run Batch Models"));
         title_layout.setJustifyContentMode(JustifyContentMode.START);
         title_layout.getStyle().set("padding", "12px");
 
@@ -291,18 +286,8 @@ public class RunView extends VerticalLayout
             soChart.removeAll();
             sochart_datachannels_list.clear();
 
-            // add output and error display buttons
-            NativeLabel debugging_options_label = new NativeLabel("Debugging options");
-            Button show_output_btn = new Button("Show Output");
-            show_output_btn.addThemeVariants(ButtonVariant.MATERIAL_OUTLINED);
-            Button show_error_btn = new Button("Show Error");
-            show_error_btn.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.MATERIAL_OUTLINED);
-            VerticalLayout debugging_options_layout = new VerticalLayout(debugging_options_label, show_output_btn, show_error_btn);
-            debugging_options_layout.setAlignItems(Alignment.CENTER);
-            model_params_layout.add(debugging_options_layout);
-
-//            JsonArray model_charts = JsonParser.parseString(model_metaData).getAsJsonObject().get("chartDTOList").getAsJsonArray();
-
+            JsonArray model_charts = JsonParser.parseString(model_metaData)
+                    .getAsJsonObject().get("chartDTOList").getAsJsonArray();
             // create the coordinate system to draw on
             XAxis xAxis = new XAxis(DataType.NUMBER);
             xAxis.setMinAsMinData();
@@ -350,9 +335,9 @@ public class RunView extends VerticalLayout
                 // add the line charts to the main chart
                 for(JsonElement chart_elt: model_charts){
                     String temp_chart_name = chart_elt.getAsJsonObject().get("chartName").getAsString();
-//                    String updated_chart_name = "comb1_" + temp_chart_name;
-                    Pair<Data, Data> temp_datas = ui_helper_service.SoLineChartConfig(temp_chart_name, soChart, rc);
-                    sochart_datachannels_list.put(temp_chart_name, temp_datas);
+                    String updated_chart_name = "comb1_" + temp_chart_name;
+                    Pair<Data, Data> temp_datas = ui_helper_service.SoLineChartConfig(updated_chart_name, soChart, rc);
+                    sochart_datachannels_list.put(updated_chart_name, temp_datas);
                 }
                 soChart.add(rc_zoom);
                 soChart.update();
@@ -386,7 +371,7 @@ public class RunView extends VerticalLayout
                         sim_session = sim_session_service.updateSimSession(sim_session);
 
 //                        boolean is_sim_run = sim_service.runSimulation(model_uploaded_path, param_json, sim_session);
-                        SimulationResult sim_result_data = sim_service.runSimulation(model_uploaded_path, param_json, sim_session, null);
+                        SimulationResult sim_result_data = sim_service.runSimulation(model_uploaded_path, param_json, sim_session, "comb1");
 
                         // UI updates should be run on the UI thread
                         getUI().ifPresent(ui -> ui.access(() -> {
@@ -408,7 +393,6 @@ public class RunView extends VerticalLayout
                                             .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                                 // delete listener threads and kafka topics
                                 sim_helper_service.deleteThreadsTopics(sim_session.getToken());
-                                System.out.println("******" + sim_result_data.getOutput());
                             }
                         }));
                     } catch (IOException | InterruptedException e) {

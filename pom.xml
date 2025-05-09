@@ -196,6 +196,12 @@
             <version>LATEST</version>
         </dependency>
 
+        <!--  add logging dependencies  -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-logging</artifactId>
+        </dependency>
+
     </dependencies>
 
     <build>

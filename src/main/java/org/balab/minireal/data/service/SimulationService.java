@@ -100,7 +100,7 @@ public class SimulationService
         process_map.remove(sim_session.getToken());
 
         // todo: kill all the threads on db and ui services related to this sim
-//        return is_sim_success;
+
         return new SimulationResult(
                 is_sim_sucess,
                 elapsed_time_unit_pair.getA(),

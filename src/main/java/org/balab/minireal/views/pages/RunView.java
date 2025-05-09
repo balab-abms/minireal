@@ -29,6 +29,7 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.theme.Theme;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.PermitAll;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.balab.minireal.data.entity.SimSession;
 import org.balab.minireal.data.service.FileSystemService;
@@ -56,6 +57,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 
+@Slf4j
 @PageTitle("Run Simulation")
 @Route(value = "run", layout = MainLayout.class)
 @PermitAll
@@ -101,6 +103,7 @@ public class RunView extends VerticalLayout
     // property values
     @Value("${spring.kafka.bootstrap-servers}")
     private String kafka_broker;
+    private SimulationResult sim_result_data;
 
     public RunView(
             AuthenticatedUser authed_user,
@@ -149,7 +152,7 @@ public class RunView extends VerticalLayout
 
         // add title and main body components
         setupComponents();
-        System.out.println(sim_session.getToken());
+        log.info("Simulation Run view instantiated. Simulation session token assigned: {}", sim_session.getToken());
 
         // subscribe to sim-session delete channel
         sim_session_del_subscriber.subscribe(del_sim_session_token -> {
@@ -188,7 +191,7 @@ public class RunView extends VerticalLayout
             @Override
             public void handleEvent(DomEvent domEvent)
             {
-                System.out.println("File Upload Aborted by User.");
+                log.warn("File Upload Aborted by User.");
                 child_main_layout.removeAll();
                 setupComponents();
                 setSimulationButtons(false);
@@ -265,7 +268,7 @@ public class RunView extends VerticalLayout
 
             boolean is_model_saved = fs_service.saveFile(model_uploaded_path, uploaded_file_byte);
             if(!is_model_saved){
-                System.out.println("File upload failed.");
+                log.error("File upload failed.");
                 Notification.show("File upload failed.").addThemeVariants(NotificationVariant.LUMO_ERROR);
                 return;
             }
@@ -295,8 +298,20 @@ public class RunView extends VerticalLayout
             NativeLabel debugging_options_label = new NativeLabel("Debugging options");
             Button show_output_btn = new Button("Show Output");
             show_output_btn.addThemeVariants(ButtonVariant.MATERIAL_OUTLINED);
+            show_output_btn.addClickListener(event -> {
+                if(sim_result_data != null)
+                {
+                    log.info("******\n" + sim_result_data.getOutput());
+                }
+            });
             Button show_error_btn = new Button("Show Error");
             show_error_btn.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.MATERIAL_OUTLINED);
+            show_error_btn.addClickListener(event -> {
+                if(sim_result_data != null)
+                {
+                    log.info("******\n" + sim_result_data.getError());
+                }
+            });
             VerticalLayout debugging_options_layout = new VerticalLayout(debugging_options_label, show_output_btn, show_error_btn);
             debugging_options_layout.setAlignItems(Alignment.CENTER);
             model_params_layout.add(debugging_options_layout);
@@ -386,10 +401,11 @@ public class RunView extends VerticalLayout
                         sim_session = sim_session_service.updateSimSession(sim_session);
 
 //                        boolean is_sim_run = sim_service.runSimulation(model_uploaded_path, param_json, sim_session);
-                        SimulationResult sim_result_data = sim_service.runSimulation(model_uploaded_path, param_json, sim_session, null);
+                        sim_result_data = sim_service.runSimulation(model_uploaded_path, param_json, sim_session, null);
 
                         // UI updates should be run on the UI thread
                         getUI().ifPresent(ui -> ui.access(() -> {
+                            log.info("*****" + sim_result_data.getError().isEmpty());
                             if (sim_result_data.isSuccess()) {
                                 sim_session.set_completed(true);
                                 sim_session = sim_session_service.updateSimSession(sim_session);
@@ -406,10 +422,15 @@ public class RunView extends VerticalLayout
                                                 10000,
                                                 Notification.Position.BOTTOM_START)
                                             .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                                // delete listener threads and kafka topics
-                                sim_helper_service.deleteThreadsTopics(sim_session.getToken());
-                                System.out.println("******" + sim_result_data.getOutput());
+                            } else {
+                                Notification.show("Simulation run failed!",
+                                                10000,
+                                                Notification.Position.BOTTOM_START)
+                                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
                             }
+                            // delete listener threads and kafka topics
+                            sim_helper_service.deleteThreadsTopics(sim_session.getToken());
+
                         }));
                     } catch (IOException | InterruptedException e) {
                         getUI().ifPresent(ui -> ui.access(() -> {

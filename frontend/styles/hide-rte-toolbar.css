@@ -1,0 +1,4 @@
+/* hide the toolbar part inside the RTE component */
+:host::part(toolbar) {
+    display: none;
+}

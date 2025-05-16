@@ -202,6 +202,13 @@
             <artifactId>spring-boot-starter-logging</artifactId>
         </dependency>
 
+        <!-- Text editor dependency  -->
+        <dependency>
+            <groupId>com.vaadin.componentfactory</groupId>
+            <artifactId>enhanced-rich-text-editor</artifactId>
+            <version>5.1.1</version>
+        </dependency>
+
     </dependencies>
 
     <build>

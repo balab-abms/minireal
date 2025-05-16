@@ -69,6 +69,7 @@
     "@vaadin/tooltip": "24.3.8",
     "@vaadin/upload": "24.3.8",
     "@vaadin/vaadin-development-mode-detector": "2.0.6",
+    "@vaadin/vaadin-license-checker": "^2.1.2",
     "@vaadin/vaadin-lumo-styles": "24.3.8",
     "@vaadin/vaadin-material-styles": "24.3.8",
     "@vaadin/vaadin-themable-mixin": "24.3.8",
@@ -172,6 +173,7 @@
     "construct-style-sheets-polyfill": "$construct-style-sheets-polyfill",
     "lit": "$lit",
     "@polymer/polymer": "$@polymer/polymer",
+    "@vaadin/vaadin-license-checker": "$@vaadin/vaadin-license-checker",
     "proj4": "$proj4",
     "@vaadin/vaadin-themable-mixin": "$@vaadin/vaadin-themable-mixin",
     "date-fns": "$date-fns",
@@ -246,6 +248,7 @@
       "@vaadin/tooltip": "24.3.8",
       "@vaadin/upload": "24.3.8",
       "@vaadin/vaadin-development-mode-detector": "2.0.6",
+      "@vaadin/vaadin-license-checker": "^2.1.2",
       "@vaadin/vaadin-lumo-styles": "24.3.8",
       "@vaadin/vaadin-material-styles": "24.3.8",
       "@vaadin/vaadin-themable-mixin": "24.3.8",
@@ -276,6 +279,6 @@
       "workbox-core": "7.0.0",
       "workbox-precaching": "7.0.0"
     },
-    "hash": "08d449b8b7be775a0b4fb30aecda4bc80654f1c27b2960e95d18d2a01aa8887b"
+    "hash": "0111fd99350774e3911905f89e7dc9f46198205981e7305709e361385335d7d6"
   }
 }

@@ -1,16 +1,21 @@
 package org.balab.minireal.views.pages;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.storedobject.chart.*;
+import com.vaadin.componentfactory.EnhancedRichTextEditor;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.dependency.CssImport;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.html.H5;
 import com.vaadin.flow.component.html.NativeLabel;
 import com.vaadin.flow.component.notification.Notification;
@@ -18,6 +23,9 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.progressbar.ProgressBar;
+import com.vaadin.flow.component.progressbar.ProgressBarVariant;
+import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.textfield.TextFieldVariant;
 import com.vaadin.flow.component.upload.Upload;
@@ -31,6 +39,7 @@ import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.annotation.security.PermitAll;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.balab.minireal.data.entity.SampleModel;
 import org.balab.minireal.data.entity.SimSession;
 import org.balab.minireal.data.service.FileSystemService;
 import org.balab.minireal.data.service.SimSessionService;
@@ -55,13 +64,17 @@ import reactor.core.publisher.Flux;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @PageTitle("Run Simulation")
 @Route(value = "run", layout = MainLayout.class)
 @PermitAll
 @CssImport("./styles/upload-center-style.css")
+//@CssImport(value = "./styles/hide-rte-toolbar.css", themeFor = "vcf-enhanced-rich-text-editor")
 public class RunView extends VerticalLayout
 {
     // define services
@@ -296,23 +309,28 @@ public class RunView extends VerticalLayout
 
             // add output and error display buttons
             NativeLabel debugging_options_label = new NativeLabel("Debugging options");
-            Button show_output_btn = new Button("Show Output");
+            Button show_output_btn = new Button("Output");
             show_output_btn.addThemeVariants(ButtonVariant.MATERIAL_OUTLINED);
             show_output_btn.addClickListener(event -> {
                 if(sim_result_data != null)
                 {
-                    log.info("******\n" + sim_result_data.getOutput());
+//                    log.info("******\n" + sim_result_data.getOutput());
+                    setupLogConfirmDialog("Simulation Output", sim_result_data.getOutput());
                 }
             });
-            Button show_error_btn = new Button("Show Error");
+            Button show_error_btn = new Button("Error");
             show_error_btn.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.MATERIAL_OUTLINED);
             show_error_btn.addClickListener(event -> {
                 if(sim_result_data != null)
                 {
-                    log.info("******\n" + sim_result_data.getError());
+//                    log.info("******\n" + sim_result_data.getError());
+                    setupLogConfirmDialog("Simulation Error", sim_result_data.getError());
                 }
             });
-            VerticalLayout debugging_options_layout = new VerticalLayout(debugging_options_label, show_output_btn, show_error_btn);
+            HorizontalLayout debug_btns_layout = new HorizontalLayout(show_output_btn, show_error_btn);
+            debug_btns_layout.setWidthFull();
+            debug_btns_layout.setJustifyContentMode(JustifyContentMode.CENTER);
+            VerticalLayout debugging_options_layout = new VerticalLayout(debugging_options_label, debug_btns_layout);
             debugging_options_layout.setAlignItems(Alignment.CENTER);
             model_params_layout.add(debugging_options_layout);
 
@@ -466,6 +484,61 @@ public class RunView extends VerticalLayout
         sim_helper_service.deleteThreadsTopics(sim_session.getToken());
 
         super.onDetach(detachEvent);
+    }
+
+    private void setupLogConfirmDialog(String title, String message)
+    {
+        Dialog sim_log_dialog = new Dialog();
+        sim_log_dialog.setCloseOnEsc(false);
+        sim_log_dialog.setCloseOnOutsideClick(false);
+        sim_log_dialog.setWidth("800px");
+
+        H4 dialog_title = new H4(title);
+
+        Button close_dialog_btn = new Button("Close");
+        close_dialog_btn.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ERROR);
+        close_dialog_btn.addClickListener(event -> sim_log_dialog.close());
+
+//        EnhancedRichTextEditor rte_editor = new EnhancedRichTextEditor();
+//        rte_editor.setWidthFull();
+//        rte_editor.setValue(msgToQuillDelta(message));
+//        rte_editor.setMinHeight("600px");
+//        rte_editor.setReadOnly(true);
+//        rte_editor.setNoRulers(true);
+
+        TextArea logArea = new TextArea();
+        logArea.setValue(message);
+        logArea.setWidthFull();
+        logArea.setHeight("600px");
+        logArea.setReadOnly(true);
+
+        HorizontalLayout dialog_buttons_layout = new HorizontalLayout(close_dialog_btn);
+        dialog_buttons_layout.setWidthFull();
+        dialog_buttons_layout.getStyle().set("flex-wrap", "wrap");
+        dialog_buttons_layout.setJustifyContentMode(JustifyContentMode.END);
+        dialog_buttons_layout.setDefaultVerticalComponentAlignment(Alignment.CENTER);
+
+        VerticalLayout dialog_layout = new VerticalLayout(dialog_title, logArea, dialog_buttons_layout);
+        dialog_layout.setSizeFull();
+
+        sim_log_dialog.add(dialog_layout);
+        sim_log_dialog.open();
+    }
+
+    public static String msgToQuillDelta(String text) {
+        // split on newlines and create one insert-op per line
+        List<Map<String,Object>> ops = new ArrayList<>();
+        for (String line : text.split("\n", -1)) {
+            // preserve the newline so the editor will render a break
+            Map<String,Object> op = new HashMap<>();
+            op.put("insert", line + "\n");
+            ops.add(op);
+        }
+        try {
+            return new ObjectMapper().writeValueAsString(ops);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to build delta", e);
+        }
     }
 
 

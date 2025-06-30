@@ -383,9 +383,9 @@ public class RunView extends VerticalLayout
                 // add the line charts to the main chart
                 for(JsonElement chart_elt: model_charts){
                     String temp_chart_name = chart_elt.getAsJsonObject().get("chartName").getAsString();
-//                    String updated_chart_name = "comb1_" + temp_chart_name;
-                    Pair<Data, Data> temp_datas = ui_helper_service.SoLineChartConfig(temp_chart_name, soChart, rc);
-                    sochart_datachannels_list.put(temp_chart_name, temp_datas);
+                    String updated_chart_name = "comb1_" + temp_chart_name;
+                    Pair<Data, Data> temp_datas = ui_helper_service.SoLineChartConfig(updated_chart_name, soChart, rc);
+                    sochart_datachannels_list.put(updated_chart_name, temp_datas);
                 }
                 soChart.add(rc_zoom);
                 soChart.update();
@@ -419,7 +419,7 @@ public class RunView extends VerticalLayout
                         sim_session = sim_session_service.updateSimSession(sim_session);
 
 //                        boolean is_sim_run = sim_service.runSimulation(model_uploaded_path, param_json, sim_session);
-                        sim_result_data = sim_service.runSimulation(model_uploaded_path, param_json, sim_session, null);
+                        sim_result_data = sim_service.runSimulation(model_uploaded_path, param_json, sim_session, "comb1");
 
                         // UI updates should be run on the UI thread
                         getUI().ifPresent(ui -> ui.access(() -> {

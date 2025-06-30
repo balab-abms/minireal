@@ -38,6 +38,7 @@ import org.balab.minireal.middleware.kafka.listener.TickListener;
 import org.balab.minireal.security.AuthenticatedUser;
 import org.balab.minireal.views.MainLayout;
 import org.balab.minireal.views.components.DBView;
+import org.balab.minireal.views.components.MultiParamView;
 import org.balab.minireal.views.components.ParamView;
 import org.balab.minireal.views.helpers.SImRelatedHelpers;
 import org.balab.minireal.views.helpers.SimulationResult;
@@ -91,7 +92,7 @@ public class BatchRunView extends VerticalLayout
     private String model_uploaded_path, model_metaData, user_saved_dir;
 
     private Boolean is_model_ran;
-    private ParamView param_view;
+    private MultiParamView param_view;
     private DBView db_view;
     // property values
     @Value("${spring.kafka.bootstrap-servers}")
@@ -268,7 +269,7 @@ public class BatchRunView extends VerticalLayout
             model_metaData = fs_service.getMetaData(model_uploaded_path);
             this.setSimulationButtons(true);
             // place model parameters on setting side layout
-            param_view = new ParamView(model_metaData);
+            param_view = new MultiParamView(model_metaData);
 //            db_view = new DBView(model_metaData);
             model_params_layout.add(param_view);
             // update model name and path in sim_session entity
@@ -324,14 +325,18 @@ public class BatchRunView extends VerticalLayout
                         .getAsJsonObject().get("chartDTOList").getAsJsonArray();
                 // create the coordinate system to draw on
                 XAxis xAxis = new XAxis(DataType.NUMBER);
-//                xAxis.setMinAsMinData();
-//                xAxis.setMaxAsMaxData();
                 xAxis.setName("Ticks");
                 YAxis yAxis = new YAxis(DataType.NUMBER);
                 yAxis.setMinAsMinData();
                 yAxis.setMaxAsMaxData();
                 RectangularCoordinate rc = new RectangularCoordinate(xAxis, yAxis);
                 DataZoom rc_zoom = new DataZoom(rc, yAxis);
+
+                // get param values and database checkbox value
+                String param_json = param_view.getParamsValue();
+                // todo: generate combination of parameters
+                // todo: add charts for each parameter combination
+
                 // add the line charts to the main chart
                 for(JsonElement chart_elt: model_charts){
                     String temp_chart_name = chart_elt.getAsJsonObject().get("chartName").getAsString();
@@ -342,10 +347,7 @@ public class BatchRunView extends VerticalLayout
                 soChart.add(rc_zoom);
                 soChart.update();
 
-                // get param values and database checkbox value
-                String param_json = param_view.getParamsValue();
-
-                // start the tick listener
+                // start the tick listener for the first combination ... change to multi select tick listener
                 TickListener tick_listener = new TickListener(kafka_broker, this.sim_session.getToken(), this.run_ui, this.tick_tf);
                 Thread tick_thread = new Thread(tick_listener, "tick" + sim_session.getToken());
                 tick_thread.start();
@@ -362,20 +364,21 @@ public class BatchRunView extends VerticalLayout
                 Thread chart_thread = new Thread(chart_listener, "chart" + sim_session.getToken());
                 chart_thread.start();
 
-                // run the simulation in a new thread
+                sim_session.set_running(true);
+                sim_session.set_completed(false);
+                sim_session.set_failed(false);
+                sim_session = sim_session_service.updateSimSession(sim_session);
+
+                // run the simulation in a new thread ... make this a separate method
                 new Thread(() -> {
                     try {
-                        sim_session.set_running(true);
-                        sim_session.set_completed(false);
-                        sim_session.set_failed(false);
-                        sim_session = sim_session_service.updateSimSession(sim_session);
-
 //                        boolean is_sim_run = sim_service.runSimulation(model_uploaded_path, param_json, sim_session);
                         SimulationResult sim_result_data = sim_service.runSimulation(model_uploaded_path, param_json, sim_session, "comb1");
 
                         // UI updates should be run on the UI thread
                         getUI().ifPresent(ui -> ui.access(() -> {
                             if (sim_result_data.isSuccess()) {
+                                sim_session.set_running(false);
                                 sim_session.set_completed(true);
                                 sim_session = sim_session_service.updateSimSession(sim_session);
                                 try {

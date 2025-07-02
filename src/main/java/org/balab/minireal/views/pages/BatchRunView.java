@@ -34,12 +34,11 @@ import org.balab.minireal.data.service.SimulationService;
 import org.balab.minireal.data.service.StorageProperties;
 import org.balab.minireal.middleware.kafka.KafkaTopicDeleter;
 import org.balab.minireal.middleware.kafka.listener.ChartListener;
-import org.balab.minireal.middleware.kafka.listener.TickListener;
+import org.balab.minireal.middleware.kafka.listener.MultiTickListener;
 import org.balab.minireal.security.AuthenticatedUser;
 import org.balab.minireal.views.MainLayout;
 import org.balab.minireal.views.components.DBView;
 import org.balab.minireal.views.components.MultiParamView;
-import org.balab.minireal.views.components.ParamView;
 import org.balab.minireal.views.helpers.SImRelatedHelpers;
 import org.balab.minireal.views.helpers.SimulationResult;
 import org.balab.minireal.views.helpers.UIRelatedHelpers;
@@ -50,7 +49,9 @@ import reactor.core.publisher.Flux;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @PageTitle("Batch Run Simulations")
 @Route(value = "batch", layout = MainLayout.class)
@@ -97,6 +98,8 @@ public class BatchRunView extends VerticalLayout
     // property values
     @Value("${spring.kafka.bootstrap-servers}")
     private String kafka_broker;
+    private ArrayList<Boolean> sims_is_success_array;
+    private ArrayList<Thread> sims_thread_array;
 
     public BatchRunView(
             AuthenticatedUser authed_user,
@@ -332,28 +335,13 @@ public class BatchRunView extends VerticalLayout
                 RectangularCoordinate rc = new RectangularCoordinate(xAxis, yAxis);
                 DataZoom rc_zoom = new DataZoom(rc, yAxis);
 
-                // get param values and database checkbox value
-                String param_json = param_view.getParamsValue();
-                // todo: generate combination of parameters
-                // todo: add charts for each parameter combination
-
-                // add the line charts to the main chart
-                for(JsonElement chart_elt: model_charts){
-                    String temp_chart_name = chart_elt.getAsJsonObject().get("chartName").getAsString();
-                    String updated_chart_name = "comb1_" + temp_chart_name;
-                    Pair<Data, Data> temp_datas = ui_helper_service.SoLineChartConfig(updated_chart_name, soChart, rc);
-                    sochart_datachannels_list.put(updated_chart_name, temp_datas);
-                }
-                soChart.add(rc_zoom);
-                soChart.update();
-
-                // start the tick listener for the first combination ... change to multi select tick listener
-                TickListener tick_listener = new TickListener(kafka_broker, this.sim_session.getToken(), this.run_ui, this.tick_tf);
-                Thread tick_thread = new Thread(tick_listener, "tick" + sim_session.getToken());
-                tick_thread.start();
+                // start the tick listener
+                MultiTickListener multi_tick_listener = new MultiTickListener(kafka_broker, this.sim_session.getToken(), this.run_ui, this.tick_tf);
+                Thread multi_tick_thread = new Thread(multi_tick_listener, "tick" + sim_session.getToken());
+                multi_tick_thread.start();
 
                 // start the chart listener
-                ChartListener chart_listener = new ChartListener(
+                ChartListener multi_chart_listener = new ChartListener(
                         ui_helper_service,
                         kafka_broker,
                         this.sim_session.getToken(),
@@ -361,7 +349,7 @@ public class BatchRunView extends VerticalLayout
                         soChart,
                         sochart_datachannels_list
                 );
-                Thread chart_thread = new Thread(chart_listener, "chart" + sim_session.getToken());
+                Thread chart_thread = new Thread(multi_chart_listener, "chart" + sim_session.getToken());
                 chart_thread.start();
 
                 sim_session.set_running(true);
@@ -369,15 +357,39 @@ public class BatchRunView extends VerticalLayout
                 sim_session.set_failed(false);
                 sim_session = sim_session_service.updateSimSession(sim_session);
 
-                // run the simulation in a new thread ... make this a separate method
-                new Thread(() -> {
-                    try {
-//                        boolean is_sim_run = sim_service.runSimulation(model_uploaded_path, param_json, sim_session);
-                        SimulationResult sim_result_data = sim_service.runSimulation(model_uploaded_path, param_json, sim_session, "comb1");
+                // get param values & permutation of parameters
+                String [] params_permutations = param_view.getParamsPermutation();
+                sims_is_success_array = new ArrayList<>();
+                sims_thread_array = new ArrayList<>();
+                for(int params_idx = 0; params_idx < params_permutations.length; params_idx++){
+                    // add charts for each parameter combination
+                    String temp_comb_name = "comb" + params_idx;
+                    for(JsonElement chart_elt: model_charts){
+                        String temp_chart_name = chart_elt.getAsJsonObject().get("chartName").getAsString();
+                        String updated_chart_name = String.format("%s_%s", temp_comb_name, temp_chart_name);
+                        Pair<Data, Data> temp_datas = ui_helper_service.SoLineChartConfig(updated_chart_name, soChart, rc);
+                        sochart_datachannels_list.put(updated_chart_name, temp_datas);
+                    }
+                    // run simulation
+                    boolean temp_is_sim_success = simRunningHelper(params_permutations[params_idx], temp_comb_name);
+                    sims_is_success_array.add(temp_is_sim_success);
+                }
+                soChart.add(rc_zoom);
+                soChart.update();
 
-                        // UI updates should be run on the UI thread
-                        getUI().ifPresent(ui -> ui.access(() -> {
-                            if (sim_result_data.isSuccess()) {
+                // implement a thread that waits for all the sim threads and update the ui
+                Thread sim_done_waiter_thread = new Thread(() -> {
+                    try {
+                        // Wait for each simulation thread to finish
+                        for (Thread simThread : sims_thread_array) {
+                            simThread.join();
+                        }
+                        // All simulations done: check aggregated success flags
+                        boolean allSuccess = sims_is_success_array.stream().allMatch(Boolean::booleanValue);
+
+                        // Update the UI on Vaadin’s UI thread
+                        run_ui.access(() -> {
+                            if (allSuccess) {
                                 sim_session.set_running(false);
                                 sim_session.set_completed(true);
                                 sim_session = sim_session_service.updateSimSession(sim_session);
@@ -388,41 +400,56 @@ public class BatchRunView extends VerticalLayout
                                 } catch (Exception e) {
                                     throw new RuntimeException(e);
                                 }
-                                
-                                // todo: add simulation run time here
-                                Notification.show("Simulation run successful (" + sim_result_data.getElapsedTime() + " " + sim_result_data.getTime_unit() + ").",
+
+                                Notification.show("All simulations completed successfully",
                                                 10000,
                                                 Notification.Position.BOTTOM_START)
-                                            .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+
                                 // delete listener threads and kafka topics
                                 sim_helper_service.deleteThreadsTopics(sim_session.getToken());
+                            } else {
+                                Notification.show("Some simulations failed",
+                                                10000,
+                                                Notification.Position.BOTTOM_START)
+                                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
                             }
-                        }));
-                    } catch (IOException | InterruptedException e) {
-                        getUI().ifPresent(ui -> ui.access(() -> {
-                            sim_session.set_failed(true);
-                            sim_session = sim_session_service.updateSimSession(sim_session);
-
-                            try {
-                                for(Pair<Data, Data> temp_chart_datas: sochart_datachannels_list.values()){
-                                    soChart.updateData(temp_chart_datas.getA(), temp_chart_datas.getB());
-                                }
-                            } catch (Exception exp) {
-                                throw new RuntimeException(exp);
-                            }
-
-                            Notification.show("Simulation failed").addThemeVariants(NotificationVariant.LUMO_ERROR);
-                            // delete listener threads and kafka topics
-                            sim_helper_service.deleteThreadsTopics(sim_session.getToken());
-                        }));
-                        throw new RuntimeException(e);
+                        });
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
                     }
-                }).start();
+                });
+                sim_done_waiter_thread.start();
+
             }
         } catch (Exception e) {
             Notification.show("Simulation failed").addThemeVariants(NotificationVariant.LUMO_ERROR);
             throw new RuntimeException(e);
         }
+    }
+
+    private boolean simRunningHelper(String param_json, String comb_name){
+        AtomicBoolean is_sim_success_temp = new AtomicBoolean(true);
+        // run the simulation in a new thread
+        Thread temp_thread = new Thread(() -> {
+            try {
+                SimulationResult sim_result_data = sim_service.runSimulation(model_uploaded_path, param_json, sim_session, comb_name);
+                is_sim_success_temp.set(sim_result_data.isSuccess());
+            } catch (IOException | InterruptedException e) {
+                getUI().ifPresent(ui -> ui.access(() -> {
+                    sim_session.set_failed(true);
+                    sim_session = sim_session_service.updateSimSession(sim_session);
+
+                    String temp_toast_text = String.format("Simulation failed for combination %s", comb_name);
+                    Notification.show(temp_toast_text).addThemeVariants(NotificationVariant.LUMO_ERROR);
+                }));
+                throw new RuntimeException(e);
+            }
+        });
+        temp_thread.start();
+        sims_thread_array.add(temp_thread);
+
+        return is_sim_success_temp.get();
     }
 
     @Override

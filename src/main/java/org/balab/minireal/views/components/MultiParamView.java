@@ -52,6 +52,7 @@ public class MultiParamView extends VerticalLayout
                 multi_combo_items.add(new_value);
                 temp_multiComboField.setItems(multi_combo_items);
                 temp_multiComboField.setValue(currentSelection);
+//                System.out.println(getParamsPermutation());
             });
             add(temp_multiComboField);
             multiComboField_map.put(param_name, temp_multiComboField);
@@ -72,5 +73,55 @@ public class MultiParamView extends VerticalLayout
             paramValuesJson.add(key, arr);
         }
         return paramValuesJson.toString();
+    }
+
+    /**
+     * Returns a simple String[] where each element is one JSON object
+     * representing one combination of your parameters.
+     *
+     * Example (for population=[100,200], wealth=[100], steps=[100]):
+     * [
+     *   {"population":"100","wealth":"100","steps":"100"},
+     *   {"population":"200","wealth":"100","steps":"100"}
+     * ]
+     */
+    public String[] getParamsPermutation() {
+        // Pull out selected values into a LinkedHashMap to preserve order
+        Map<String, Set<String>> params = new LinkedHashMap<>();
+        for (Map.Entry<String, MultiSelectComboBox> e : multiComboField_map.entrySet()) {
+            params.put(e.getKey(), e.getValue().getValue());
+        }
+
+        // Build the JSON array of all permutations
+        JsonArray permutations = new JsonArray();
+        buildPermutations(params, new ArrayList<>(params.keySet()), 0, new LinkedHashMap<>(), permutations);
+
+        // Convert each JsonObject in the array to its String form
+        String[] result = new String[permutations.size()];
+        for (int i = 0; i < permutations.size(); i++) {
+            result[i] = permutations.get(i).toString();
+        }
+        System.out.println(Arrays.toString(result));
+        return result;
+    }
+
+    // Recursive helper—same as before
+    private void buildPermutations(Map<String, Set<String>> params,
+                                   List<String> keys,
+                                   int depth,
+                                   Map<String, String> current,
+                                   JsonArray result) {
+        if (depth == keys.size()) {
+            JsonObject obj = new JsonObject();
+            current.forEach(obj::addProperty);
+            result.add(obj);
+            return;
+        }
+        String key = keys.get(depth);
+        for (String val : params.get(key)) {
+            current.put(key, val);
+            buildPermutations(params, keys, depth + 1, current, result);
+            current.remove(key);
+        }
     }
 }

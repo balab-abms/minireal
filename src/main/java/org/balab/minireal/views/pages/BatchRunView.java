@@ -1,8 +1,10 @@
 package org.balab.minireal.views.pages;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
 import com.storedobject.chart.*;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.UI;
@@ -39,6 +41,7 @@ import org.balab.minireal.security.AuthenticatedUser;
 import org.balab.minireal.views.MainLayout;
 import org.balab.minireal.views.components.DBView;
 import org.balab.minireal.views.components.MultiParamView;
+import org.balab.minireal.views.components.PermutationGridView;
 import org.balab.minireal.views.helpers.SImRelatedHelpers;
 import org.balab.minireal.views.helpers.SimulationResult;
 import org.balab.minireal.views.helpers.UIRelatedHelpers;
@@ -49,8 +52,11 @@ import reactor.core.publisher.Flux;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @PageTitle("Batch Run Simulations")
@@ -76,8 +82,7 @@ public class BatchRunView extends VerticalLayout
     FlexLayout child_main_layout;
     VerticalLayout model_params_layout;
     VerticalLayout model_chart_settings_layout;
-//    private LineChartConfig config;
-//    private ChartJs chartJs;
+    HorizontalLayout sim_settings_layout;
     private SOChart soChart;
     private HashMap<String, Pair<Data, Data>> sochart_datachannels_list;
     Upload model_upload;
@@ -100,6 +105,7 @@ public class BatchRunView extends VerticalLayout
     private String kafka_broker;
     private ArrayList<Boolean> sims_is_success_array;
     private ArrayList<Thread> sims_thread_array;
+    private String [] params_permutations;
 
     public BatchRunView(
             AuthenticatedUser authed_user,
@@ -137,7 +143,7 @@ public class BatchRunView extends VerticalLayout
         if(authed_user.get().isPresent()){
             user_saved_dir = storage_properties.getUsers() + File.separator + authed_user.get().get().getId() +
                     File.separator + "models";
-            // create sim simsession instance
+            // create sim sim-session instance
             sim_session = sim_session_service.createSimSession(
                     authed_user.get().get(),
                     model_uploaded_path
@@ -209,7 +215,7 @@ public class BatchRunView extends VerticalLayout
         HorizontalLayout tick_layout = new HorizontalLayout(tick_label, tick_tf);
         tick_layout.setJustifyContentMode(JustifyContentMode.CENTER);
         tick_layout.setAlignItems(Alignment.CENTER);
-        // setup buttonsl
+        // setup buttons
         start_btn = new Button("Start");
         start_btn.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
         start_btn.addClickListener(event -> {
@@ -234,13 +240,14 @@ public class BatchRunView extends VerticalLayout
 
         });
         this.setSimulationButtons(false);
-        HorizontalLayout sim_settings_layout = new HorizontalLayout(model_name_label, tick_layout, start_btn, stop_btn);
+        sim_settings_layout = new HorizontalLayout(model_name_label, tick_layout, start_btn, stop_btn);
         sim_settings_layout.setWidthFull();
         sim_settings_layout.setFlexGrow(1, tick_layout);
         sim_settings_layout.setAlignItems(Alignment.CENTER);
 
         soChart = new SOChart();
         soChart.setSize("100%", "90%");
+        soChart.setMinHeight("400px");
         sochart_datachannels_list = new HashMap<>();
 
         model_chart_settings_layout = new VerticalLayout(sim_settings_layout, soChart);
@@ -321,8 +328,13 @@ public class BatchRunView extends VerticalLayout
         try {
             if (!model_uploaded_path.isEmpty()) {
                 // clear existing data and chart
-                soChart.removeAll();
-                sochart_datachannels_list.clear();
+                soChart = new SOChart();
+                soChart.setSize("100%", "90%");
+                soChart.setMinHeight("400px");
+                sochart_datachannels_list = new HashMap<>();
+
+                model_chart_settings_layout.removeAll();
+                model_chart_settings_layout.add(sim_settings_layout, soChart);
 
                 JsonArray model_charts = JsonParser.parseString(model_metaData)
                         .getAsJsonObject().get("chartDTOList").getAsJsonArray();
@@ -358,9 +370,15 @@ public class BatchRunView extends VerticalLayout
                 sim_session = sim_session_service.updateSimSession(sim_session);
 
                 // get param values & permutation of parameters
-                String [] params_permutations = param_view.getParamsPermutation();
+                params_permutations = param_view.getParamsPermutation();
                 sims_is_success_array = new ArrayList<>();
                 sims_thread_array = new ArrayList<>();
+
+                // setup data structure for params grid
+                List<Map<String,String>> combos_map_list = new ArrayList<>();
+                Gson gson = new Gson();
+                Type mapType = new TypeToken<Map<String,String>>(){}.getType();
+
                 for(int params_idx = 0; params_idx < params_permutations.length; params_idx++){
                     // add charts for each parameter combination
                     String temp_comb_name = "comb" + params_idx;
@@ -370,6 +388,10 @@ public class BatchRunView extends VerticalLayout
                         Pair<Data, Data> temp_datas = ui_helper_service.SoLineChartConfig(updated_chart_name, soChart, rc);
                         sochart_datachannels_list.put(updated_chart_name, temp_datas);
                     }
+                    // add combination data to map list
+                    Map<String,String> map = gson.fromJson(params_permutations[params_idx], mapType);
+                    map.put("Combination Name", temp_comb_name);
+                    combos_map_list.add(map);
                     // run simulation
                     boolean temp_is_sim_success = simRunningHelper(params_permutations[params_idx], temp_comb_name);
                     sims_is_success_array.add(temp_is_sim_success);
@@ -408,6 +430,7 @@ public class BatchRunView extends VerticalLayout
 
                                 // delete listener threads and kafka topics
                                 sim_helper_service.deleteThreadsTopics(sim_session.getToken());
+                                params_permutations = new String[]{};
                             } else {
                                 Notification.show("Some simulations failed",
                                                 10000,
@@ -421,6 +444,10 @@ public class BatchRunView extends VerticalLayout
                 });
                 sim_done_waiter_thread.start();
 
+                // add parameters permutation grid
+                PermutationGridView params_permute_grid = new PermutationGridView(combos_map_list);
+                model_chart_settings_layout.add(params_permute_grid);
+                model_chart_settings_layout.setFlexGrow(1, soChart);
             }
         } catch (Exception e) {
             Notification.show("Simulation failed").addThemeVariants(NotificationVariant.LUMO_ERROR);
